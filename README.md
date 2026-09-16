@@ -1,47 +1,115 @@
-# AR Plant Doctor
+# 🌿 AR Plant Doctor
 
-## Project Overview
-AR Plant Doctor is a web-based Augmented Reality application designed to assist users with plant care and health diagnosis directly in their mobile browser. By scanning AR barcode markers placed on or near houseplants, users can view real-time care instructions, watering schedules, and environmental tips rendered directly over their plants.
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-5.x-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
+[![A-Frame](https://img.shields.io/badge/A--Frame-1.4.0-EF2D5E?style=flat&logo=aframe&logoColor=white)](https://aframe.io/)
+[![AR.js](https://img.shields.io/badge/AR.js-3.x-orange?style=flat)](https://ar-js-org.github.io/AR.js-Docs/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Tech Stack
-- **HTML5 & CSS3**: Core application structure, reset styling, and loading screen animations
-- **JavaScript (ES6+)**: Dynamic data fetching, date math for watering calculations, and AR event tracking
-- **Node.js & Express**: Backend API server for persisting plant data and serving the dashboard
-- **A-Frame 1.4.0**: 3D and WebXR framework for rendering spatial overlays and text entities
-- **AR.js**: Lightweight AR library for camera feed processing and barcode marker recognition
-- **Chart.js**: Interactive analytics charting for tracking watering trends
-- **Service Workers**: Background notification scheduling for overdue plant alerts
+An Augmented Reality (AR) houseplant health monitoring and care management web application. Point your smartphone or webcam at a custom plant marker to view real-time watering schedules, urgency status, sunlight requirements, and care tips rendered in 3D directly above the pot.
 
-## How to Run the Dashboard
+---
 
-### 8.1 Local Development
-Replace `npx serve .` with `node server.js` from now on. The Express server handles everything:
-1. `cd C:\Games\Jaiivant\ARVR`
-2. `node server.js`
-3. Open `http://localhost:3000` on your laptop → AR app
-4. Open `http://localhost:3000/dashboard` on your laptop → Dashboard
-5. For phone AR testing, still use ngrok: `npx ngrok http 3000`
+## ✨ Features
 
-### 8.2 Workflow
-The intended daily workflow once built:
-- Open dashboard at `localhost:3000/dashboard` on your laptop
-- Tap "Mark Watered" on any plant after you water it — updates `plants.json` instantly
-- Scan the AR marker on the pot with your phone — shows updated watering status from the same file
-- Check Analytics weekly to see which plants you have been neglecting
-- Enable notifications in Settings — browser will alert you when a plant is overdue
+- 📱 **Real-Time AR Overlays**: 3D informational HUD cards hover over physical plant markers showing watering countdowns, urgency colors, sunlight guidelines, and care tips.
+- 🎨 **Auto-Generated Pattern Markers**: Custom, high-contrast AR pattern markers generated server-side for any plant (existing and new) with official 195-line, 4-orientation ARToolKit `.patt` encoding.
+- 📊 **Care Analytics & Dashboard**: Centralized dashboard for managing your plant collection, tracking 30-day watering history via Chart.js, and logging watering events with a single click.
+- 🖨 **Integrated Marker Print Studio**: Clean, print-ready layouts with proper quiet zones to easily print and attach markers to plant pots.
+- 🔔 **Overdue Care Alerts**: Browser service worker background checks alerting you when plants need immediate watering.
+- ⚡ **Zero External Marker Downloads**: Entire marker training and descriptor synthesis runs locally and automatically on server startup or plant creation.
 
-## How to Add a New Plant
-1. Edit `plants.json` or use the Dashboard UI to add a new plant entry keyed by its marker ID string (e.g. `"6"`).
-2. Specify the plant attributes (`name`, `scientificName`, `lastWatered`, `wateringIntervalDays`, `sunlight`, `tips`, `emoji`).
-3. Print or display the 3x3 matrix barcode marker matching the key value (e.g., Barcode value 6) and place it near your plant.
+---
 
-## How to Deploy
-1. Commit all project files to your local repository.
-2. Push your changes to the `main` branch:
-   ```bash
-   git push origin main
-   ```
-3. The GitHub Actions workflow (`.github/workflows/deploy.yml`) will automatically trigger and host the updated web app on GitHub Pages.
+## 🛠 Tech Stack
 
-## Phase 8 Note
-An image recognition upgrade is available for markerless plant detection and automated leaf disease classification using machine learning models.
+| Layer | Technology |
+| :--- | :--- |
+| **AR & 3D Engine** | [A-Frame](https://aframe.io/) (1.4.0) + [AR.js](https://github.com/AR-js-org/AR.js) (Master Build) |
+| **Frontend UI** | HTML5, CSS3, Modern ES6+ JavaScript, Chart.js |
+| **Backend Server** | [Node.js](https://nodejs.org/) with [Express](https://expressjs.com/) |
+| **Marker Synthesis** | [node-canvas](https://github.com/Automattic/node-canvas) (ARToolKit BGR 16x16 4-angle rotation encoder) |
+| **Persistence** | Lightweight JSON data store (`plants.json`) |
+| **PWA & Offline** | Service Workers (`dashboard/sw.js`) |
+
+---
+
+## 📂 Project Structure
+
+```text
+ARVR/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml          # GitHub Actions CI/CD deployment workflow
+├── assets/
+│   └── icons/                  # Printable marker PNG images (marker-1.png, ...)
+├── dashboard/
+│   ├── dashboard.css           # Care dashboard styling
+│   ├── dashboard.js            # Plant management, analytics & print logic
+│   ├── index.html              # Web management dashboard interface
+│   └── sw.js                   # Service worker for background notifications
+├── markers/                    # Pre-trained ARToolKit pattern descriptors (marker-1.patt, ...)
+├── app.js                      # Core AR event handling and overlay rendering logic
+├── index.html                  # Main AR camera application entry point
+├── style.css                   # Main AR overlay styling and loader animation
+├── plants.json                 # JSON database of plants and care records
+├── server.js                   # Express server and marker training backend
+├── run_app.py                  # Cross-platform helper launcher (Server + ngrok tunnel)
+├── run_app.bat                 # Windows one-click launcher
+├── package.json                # Project dependencies and run scripts
+├── .gitignore                  # Git ignore rules for node_modules and cache
+└── README.md                   # Project documentation
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- **Node.js** (v18.0.0 or higher)
+- A webcam or smartphone camera
+
+### 2. Installation
+Clone the repository and install the dependencies:
+```bash
+git clone https://github.com/JaiivantArvind/AR-Plant-Doctor.git
+cd AR-Plant-Doctor
+npm install
+```
+
+### 3. Running the Server
+Start the local server:
+```bash
+npm start
+```
+*(On server launch, missing marker descriptors for all plants in `plants.json` are auto-generated automatically).*
+
+### 4. Accessing the Application
+- **AR Camera View**: Open [http://localhost:3000](http://localhost:3000)
+- **Care Dashboard**: Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+
+> **Tip for Mobile Testing**: Mobile browsers require HTTPS for camera permissions. You can use **ngrok** to create a secure tunnel:
+> ```bash
+> npx ngrok http 3000
+> ```
+> Open the resulting `https://...ngrok-free.app` URL on your phone!
+
+---
+
+## 📖 How It Works
+
+### Marker Detection & AR Tracking
+1. The AR scene is configured with `patternRatio: 0.75`, matching the border-to-inner ratio of the auto-generated marker templates.
+2. The server generates a $512 \times 512$ high-contrast marker containing the plant's unique identifier and an orientation accent shape.
+3. The server's pattern encoder samples the inner area in BGR color channels across 4 rotational angles ($0^\circ, -90^\circ, -180^\circ, -270^\circ$), generating standard 195-line `.patt` files.
+4. When the camera recognizes a marker, `app.js` pulls the latest plant information from `/api/plants`, calculates watering urgency, and positions the floating status card.
+
+### Dynamic Plant Addition
+- When a new plant is added through the **Plant Management** tab on the dashboard, the backend creates its custom `.patt` and `.png` marker files on the fly.
+- The AR camera view polls for newly added plants and dynamically registers new `<a-marker>` nodes without requiring a page reload.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

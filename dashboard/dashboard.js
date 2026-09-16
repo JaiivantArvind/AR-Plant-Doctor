@@ -75,102 +75,11 @@ async function savePlants(plants) {
 }
 
 /**
- * Generates an offscreen HTML5 Canvas (512x512) containing an AR.js pattern marker matching SVG design.
- * @param {string|number} markerId - Marker value ID (1 through 5).
- * @returns {HTMLCanvasElement} The drawn canvas element.
- */
-function generateMarkerCanvas(markerId) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-
-    // 1. Fill entire canvas black (512x512) - 40px outer border
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, 512, 512);
-
-    // 2. Inner 432x432 white area at x=40, y=40
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(40, 40, 432, 432);
-
-    // 3. Draw black shape in center
-    ctx.fillStyle = '#000000';
-    const id = String(markerId);
-
-    if (id === '1') {
-        // Circle
-        ctx.beginPath();
-        ctx.arc(256, 256, 120, 0, Math.PI * 2);
-        ctx.fill();
-    } else if (id === '2') {
-        // Triangle
-        ctx.beginPath();
-        ctx.moveTo(256, 120);
-        ctx.lineTo(376, 360);
-        ctx.lineTo(136, 360);
-        ctx.closePath();
-        ctx.fill();
-    } else if (id === '3') {
-        // Plus / Cross shape (two overlapping rectangles)
-        ctx.fillRect(136, 216, 240, 80);
-        ctx.fillRect(216, 136, 80, 240);
-    } else if (id === '4') {
-        // Diamond (rotated square)
-        ctx.beginPath();
-        ctx.moveTo(256, 116);
-        ctx.lineTo(396, 256);
-        ctx.lineTo(256, 396);
-        ctx.lineTo(116, 256);
-        ctx.closePath();
-        ctx.fill();
-    } else if (id === '5') {
-        // Star (5-pointed)
-        const points = [
-            [256, 126], [288, 211], [380, 216], [308, 273], [332, 361],
-            [256, 311], [180, 361], [204, 273], [132, 216], [224, 211]
-        ];
-        ctx.beginPath();
-        ctx.moveTo(points[0][0], points[0][1]);
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i][0], points[i][1]);
-        }
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    return canvas;
-}
-
-/**
- * Sends base64 dataUrl of generated marker canvas to POST /api/save-marker.
- * @param {string|number} markerId - Marker ID.
- * @param {HTMLCanvasElement} canvas - Canvas element.
- * @returns {Promise<Object>} Server response.
- */
-async function saveMarkerToServer(markerId, canvas) {
-    try {
-        const dataUrl = canvas.toDataURL('image/png');
-        const response = await fetch('/api/save-marker', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                filename: `${markerId}.png`,
-                dataUrl: dataUrl
-            })
-        });
-        return await response.json();
-    } catch (err) {
-        console.error('Error saving marker to server:', err);
-    }
-}
-
-/**
- * Opens a new tab displaying the generated marker canvas image for printing.
+ * Opens a new tab displaying the generated marker image for printing.
  * @param {string|number} markerId - Marker ID.
  * @param {string} plantName - Name of the plant.
- * @param {HTMLCanvasElement} canvas - Canvas element.
  */
-function openMarkerPrintPage(markerId, plantName, canvas) {
+function openMarkerPrintPage(markerId, plantName) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         alert('Please allow pop-ups to view and print the marker.');
@@ -178,7 +87,7 @@ function openMarkerPrintPage(markerId, plantName, canvas) {
     }
 
     const idStr = String(markerId);
-    const markerContent = `<img src="/assets/icons/marker-${idStr}.png" alt="AR Marker #${idStr}">`;
+    const markerImgSrc = `/assets/icons/marker-${idStr}.png`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -261,7 +170,7 @@ function openMarkerPrintPage(markerId, plantName, canvas) {
     <h1>${plantName}</h1>
     <p class="sub">AR Marker #${idStr}</p>
     <div class="marker-container">
-        ${markerContent}
+        <img src="${markerImgSrc}" alt="AR Marker #${idStr}">
     </div>
     <p class="instructions">
         Print this page and attach to your plant pot. Point the AR Plant Doctor camera at this pattern marker.
@@ -312,7 +221,7 @@ function renderHome(plants) {
     if (!grid) return;
 
     if (!plants || Object.keys(plants).length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #a0aec0; font-size: 1.2rem;">No plants yet — add one in My Plants 🌿</div>'; // No plantsyet
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #a0aec0; font-size: 1.2rem;">No plants yet — add one in My Plants 🌿</div>';
         return;
     }
 
@@ -461,9 +370,7 @@ function renderDetail(plants, id) {
     const printBtn = container.querySelector('.print-marker-btn');
     if (printBtn) {
         printBtn.addEventListener('click', () => {
-            const canvas = generateMarkerCanvas(id);
-            saveMarkerToServer(id, canvas);
-            openMarkerPrintPage(id, plant.name, canvas);
+            openMarkerPrintPage(id, plant.name);
         });
     }
 
@@ -580,10 +487,25 @@ function renderPlants(plants) {
             wateringHistory: existingHistory
         };
 
+        const isNew = !editId;
+
         await savePlants(plants);
         renderPlants(plants);
         renderHome(plants);
         renderAnalytics(plants);
+
+        if (isNew) {
+            try {
+                await fetch('/api/generate-marker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plantId: targetId, plantName: name })
+                });
+            } catch (err) {
+                console.error('Error auto-generating marker:', err);
+            }
+            showToast(`Plant added! Marker #${targetId} auto-generated — print it from the plant detail page.`, 'success');
+        }
     });
 
     const listGrid = document.getElementById('plants-list-grid');
@@ -666,7 +588,7 @@ function renderAnalytics(plants) {
         <div class="card" style="margin-top: 1.5rem; padding: 1.5rem;">
             <h3 style="margin-bottom: 1rem; color: #b7e4c7;">Watering Activity (Last 30 Days)</h3>
             <div style="position: relative; width: 100%; min-height: 300px;">
-                <canvas id="watering-chart"></canvas> <!-- wateringchart canvas -->
+                <canvas id="watering-chart"></canvas>
             </div>
         </div>
 
@@ -763,7 +685,7 @@ function renderSettings(plants) {
             <div style="margin-top: 1.5rem; border-top: 1px solid #0f3460; padding-top: 1.5rem;">
                 <h3 style="margin-bottom: 0.5rem;">Marker Storage</h3>
                 <p style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 1rem;">
-                    Generate and save all AR barcode marker PNGs (1-5) to the server's <code>/markers/</code> folder.
+                    Regenerate custom AR pattern markers for all plants.
                 </p>
                 <button id="generate-all-markers-btn" style="background-color: #1B4332; color: #ffffff; border: 1px solid #52B788; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     Generate All Markers
@@ -791,12 +713,15 @@ function renderSettings(plants) {
     const genBtn = document.getElementById('generate-all-markers-btn');
     if (genBtn) {
         genBtn.addEventListener('click', async () => {
-            const keys = ['1', '2', '3', '4', '5'];
+            const keys = Object.keys(plants);
             for (const key of keys) {
-                const canvas = generateMarkerCanvas(key);
-                await saveMarkerToServer(key, canvas);
+                await fetch('/api/generate-marker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plantId: key, plantName: plants[key].name })
+                });
             }
-            showToast("All markers saved to /markers/ folder", "success");
+            showToast("All markers generated and saved", "success");
         });
     }
 }

@@ -26,43 +26,47 @@
         <p>Point camera at a plant AR marker (Brightness: 100%)</p>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- AR Pattern Markers 1 through 5 -->
-        <a-marker preset="hiro" id="marker-1">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.75;">
+        <a-marker type="pattern" url="/markers/marker-1.patt" id="marker-1" patternRatio="0.75">
             <a-plane position="0 1.8 0" width="2.4" height="1.6" color="#1A1A2E" opacity="0.92"></a-plane>
-            <a-text id="name-1" position="-1.0 2.3 0.05" value="PEACE LILY" color="#FFFFFF" width="4.5"></a-text>
+            <a-text id="emoji-1" position="-0.9 2.3 0.05" value="🪴" color="#52B788" width="5"></a-text>
+            <a-text id="name-1" position="-0.6 2.3 0.05" value="PEACE LILY" color="#FFFFFF" width="4.5"></a-text>
             <a-text id="water-1" position="-1.0 2.0 0.05" value="Water Status" color="#FFD166" width="3.5"></a-text>
             <a-text id="sun-1" position="-1.0 1.7 0.05" value="Sunlight" color="#B7E4C7" width="3.0"></a-text>
             <a-text id="tip-1" position="-1.0 1.4 0.05" value="Tip" color="#B7E4C7" width="2.6"></a-text>
         </a-marker>
 
-        <a-marker preset="kanji" id="marker-2">
+        <a-marker type="pattern" url="/markers/marker-2.patt" id="marker-2" patternRatio="0.75">
             <a-plane position="0 1.8 0" width="2.4" height="1.6" color="#1A1A2E" opacity="0.92"></a-plane>
-            <a-text id="name-2" position="-1.0 2.3 0.05" value="MONSTERA" color="#FFFFFF" width="4.5"></a-text>
+            <a-text id="emoji-2" position="-0.9 2.3 0.05" value="🌿" color="#52B788" width="5"></a-text>
+            <a-text id="name-2" position="-0.6 2.3 0.05" value="MONSTERA" color="#FFFFFF" width="4.5"></a-text>
             <a-text id="water-2" position="-1.0 2.0 0.05" value="Water Status" color="#FFD166" width="3.5"></a-text>
             <a-text id="sun-2" position="-1.0 1.7 0.05" value="Sunlight" color="#B7E4C7" width="3.0"></a-text>
             <a-text id="tip-2" position="-1.0 1.4 0.05" value="Tip" color="#B7E4C7" width="2.6"></a-text>
         </a-marker>
 
-        <a-marker type="pattern" url="/markers/marker-3.patt" id="marker-3">
+        <a-marker type="pattern" url="/markers/marker-3.patt" id="marker-3" patternRatio="0.75">
             <a-plane position="0 1.8 0" width="2.4" height="1.6" color="#1A1A2E" opacity="0.92"></a-plane>
-            <a-text id="name-3" position="-1.0 2.3 0.05" value="SNAKE PLANT" color="#FFFFFF" width="4.5"></a-text>
+            <a-text id="emoji-3" position="-0.9 2.3 0.05" value="🪴" color="#52B788" width="5"></a-text>
+            <a-text id="name-3" position="-0.6 2.3 0.05" value="SNAKE PLANT" color="#FFFFFF" width="4.5"></a-text>
             <a-text id="water-3" position="-1.0 2.0 0.05" value="Water Status" color="#FFD166" width="3.5"></a-text>
             <a-text id="sun-3" position="-1.0 1.7 0.05" value="Sunlight" color="#B7E4C7" width="3.0"></a-text>
             <a-text id="tip-3" position="-1.0 1.4 0.05" value="Tip" color="#B7E4C7" width="2.6"></a-text>
         </a-marker>
 
-        <a-marker type="pattern" url="/markers/marker-4.patt" id="marker-4">
+        <a-marker type="pattern" url="/markers/marker-4.patt" id="marker-4" patternRatio="0.75">
             <a-plane position="0 1.8 0" width="2.4" height="1.6" color="#1A1A2E" opacity="0.92"></a-plane>
-            <a-text id="name-4" position="-1.0 2.3 0.05" value="POTHOS" color="#FFFFFF" width="4.5"></a-text>
+            <a-text id="emoji-4" position="-0.9 2.3 0.05" value="🌱" color="#52B788" width="5"></a-text>
+            <a-text id="name-4" position="-0.6 2.3 0.05" value="POTHOS" color="#FFFFFF" width="4.5"></a-text>
             <a-text id="water-4" position="-1.0 2.0 0.05" value="Water Status" color="#FFD166" width="3.5"></a-text>
             <a-text id="sun-4" position="-1.0 1.7 0.05" value="Sunlight" color="#B7E4C7" width="3.0"></a-text>
             <a-text id="tip-4" position="-1.0 1.4 0.05" value="Tip" color="#B7E4C7" width="2.6"></a-text>
         </a-marker>
 
-        <a-marker type="pattern" url="/markers/marker-5.patt" id="marker-5">
+        <a-marker type="pattern" url="/markers/marker-5.patt" id="marker-5" patternRatio="0.75">
             <a-plane position="0 1.8 0" width="2.4" height="1.6" color="#1A1A2E" opacity="0.92"></a-plane>
-            <a-text id="name-5" position="-1.0 2.3 0.05" value="ALOE VERA" color="#FFFFFF" width="4.5"></a-text>
+            <a-text id="emoji-5" position="-0.9 2.3 0.05" value="🌵" color="#52B788" width="5"></a-text>
+            <a-text id="name-5" position="-0.6 2.3 0.05" value="ALOE VERA" color="#FFFFFF" width="4.5"></a-text>
             <a-text id="water-5" position="-1.0 2.0 0.05" value="Water Status" color="#FFD166" width="3.5"></a-text>
             <a-text id="sun-5" position="-1.0 1.7 0.05" value="Sunlight" color="#B7E4C7" width="3.0"></a-text>
             <a-text id="tip-5" position="-1.0 1.4 0.05" value="Tip" color="#B7E4C7" width="2.6"></a-text>

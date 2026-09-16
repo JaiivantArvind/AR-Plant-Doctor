@@ -1,7 +1,0 @@
-{
-  "name": "ar-marker-generator",
-  "version": "1.0.0",
-  "description": "AR.js pattern marker generator from SVG",
-  "main": "index.js",
-  "license": "MIT"
-}

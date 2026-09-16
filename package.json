@@ -1,6 +1,13 @@
 {
+  "name": "ar-plant-doctor",
+  "version": "1.0.0",
+  "description": "AR Plant Doctor - Augmented Reality Houseplant Health Monitor & Management Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "ar-marker-generator": "file:ar-marker-generator",
+    "canvas": "^3.2.3",
     "express": "^5.2.1"
   }
 }
