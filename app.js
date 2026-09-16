@@ -21,7 +21,7 @@ async function getPlantData(markerId) {
 }
 
 /**
- * Calculates watering status and remaining days.
+ * Calculates watering status and remaining days in clean ASCII text.
  * @param {string} lastWatered - ISO date string (YYYY-MM-DD).
  * @param {number} intervalDays - Watering interval in days.
  * @returns {string} Human-readable status message.
@@ -36,9 +36,9 @@ function daysUntilWater(lastWatered, intervalDays) {
     const daysRemaining = intervalDays - daysPassed;
 
     if (daysRemaining < 0) {
-        return `⚠ Overdue by ${Math.abs(daysRemaining)} days`;
+        return `Overdue by ${Math.abs(daysRemaining)} days!`;
     } else if (daysRemaining <= 1) {
-        return `💧 Water today!`;
+        return `Water Today!`;
     } else {
         return `Water in ${daysRemaining} days`;
     }
@@ -61,10 +61,11 @@ function getUrgencyColor(daysRemaining) {
 
 /**
  * Initializes and populates marker AR overlay elements with plant data.
- * @param {string} markerId - Marker ID/value string ("1" to "5").
+ * @param {string} markerId - Marker ID/value string ("1" to "5" or "hiro").
  */
 async function initMarker(markerId) {
-    const plant = await getPlantData(markerId);
+    const targetKey = markerId === 'hiro' ? '1' : markerId;
+    const plant = await getPlantData(targetKey);
     if (!plant) return;
 
     const last = new Date(plant.lastWatered);
@@ -77,49 +78,70 @@ async function initMarker(markerId) {
     const waterText = daysUntilWater(plant.lastWatered, plant.wateringIntervalDays);
     const urgencyColor = getUrgencyColor(daysRemaining);
 
-    const emojiEl = document.querySelector(`#emoji-${markerId}`);
-    const nameEl = document.querySelector(`#name-${markerId}`);
-    const waterEl = document.querySelector(`#water-${markerId}`);
-    const sunEl = document.querySelector(`#sun-${markerId}`);
-    const tipEl = document.querySelector(`#tip-${markerId}`);
+    const suffix = markerId;
+    const nameEl = document.querySelector(`#name-${suffix}`);
+    const waterEl = document.querySelector(`#water-${suffix}`);
+    const sunEl = document.querySelector(`#sun-${suffix}`);
+    const tipEl = document.querySelector(`#tip-${suffix}`);
 
-    if (emojiEl) {
-        emojiEl.setAttribute('value', plant.emoji || '🪴');
-        emojiEl.setAttribute('color', '#52B788');
-    }
     if (nameEl) {
-        nameEl.setAttribute('value', plant.name || '');
-        nameEl.setAttribute('color', 'white');
+        const displayName = (plant.name || '').toUpperCase();
+        nameEl.setAttribute('value', displayName);
+        nameEl.setAttribute('color', '#FFFFFF');
     }
     if (waterEl) {
-        waterEl.setAttribute('value', waterText);
+        waterEl.setAttribute('value', `WATER: ${waterText}`);
         waterEl.setAttribute('color', urgencyColor);
     }
     if (sunEl) {
-        sunEl.setAttribute('value', `☀️ ${plant.sunlight || ''}`);
+        const sun = (plant.sunlight || '').substring(0, 30);
+        sunEl.setAttribute('value', `SUN: ${sun}`);
         sunEl.setAttribute('color', '#B7E4C7');
     }
     if (tipEl) {
-        const firstTip = plant.tips && plant.tips.length > 0 ? plant.tips[0] : '';
-        tipEl.setAttribute('value', `💡 ${firstTip}`);
+        const firstTip = (plant.tips && plant.tips.length > 0 ? plant.tips[0] : '').substring(0, 35);
+        tipEl.setAttribute('value', `TIP: ${firstTip}`);
         tipEl.setAttribute('color', '#B7E4C7');
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Hide loading screen after 4 seconds unconditionally — camera permission
-    // is handled by the browser, we do not need to gate on AR.js events
+document.addEventListener('DOMContentLoaded', async () => {
+    // Pre-populate marker data for markers 1 to 5 and hiro
+    const markerIds = ['1', '2', '3', '4', '5', 'hiro'];
+    for (const id of markerIds) {
+        await initMarker(id);
+    }
+
+    // Hide loading screen after 3 seconds unconditionally
     setTimeout(() => {
         const ls = document.querySelector('.loading-screen');
         if (ls) ls.style.display = 'none';
-    }, 4000);
+    }, 3000);
 
-    // Wire markers
-    for (let i = 1; i <= 5; i++) {
-        const markerEl = document.querySelector(`#marker-${i}`);
+    // Wire markers with markerFound / markerLost event handlers
+    const infoBanner = document.getElementById('ar-overlay-info');
+
+    for (const id of markerIds) {
+        const selector = id === 'hiro' ? '#marker-hiro' : `#marker-${id}`;
+        const markerEl = document.querySelector(selector);
         if (markerEl) {
-            markerEl.addEventListener('markerFound', () => {
-                initMarker(i.toString());
+            markerEl.addEventListener('markerFound', async () => {
+                await initMarker(id);
+                const targetKey = id === 'hiro' ? '1' : id;
+                const plant = plantsCache && plantsCache[targetKey] ? plantsCache[targetKey] : null;
+                if (infoBanner && plant) {
+                    infoBanner.innerText = `🌿 Marker ${id.toUpperCase()} Detected: ${plant.name}`;
+                    infoBanner.style.borderColor = '#FFD166';
+                    infoBanner.style.color = '#FFD166';
+                }
+            });
+
+            markerEl.addEventListener('markerLost', () => {
+                if (infoBanner) {
+                    infoBanner.innerText = `🌿 AR Doctor Active: Scan Marker #1-5 or Hiro Marker`;
+                    infoBanner.style.borderColor = '#52B788';
+                    infoBanner.style.color = '#52B788';
+                }
             });
         }
     }

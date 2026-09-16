@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Plant Doctor — Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🌿 Plant Doctor</div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-section="home">Home</button>
+            <button class="nav-btn" data-section="plants">Plants</button>
+            <button class="nav-btn" data-section="analytics">Analytics</button>
+            <button class="nav-btn" data-section="settings">Settings</button>
+        </div>
+    </nav>
+
+    <main class="dashboard-content">
+        <section id="home-section" class="dashboard-section">
+            <h2>Overview</h2>
+            <div class="card-grid"></div>
+        </section>
+
+        <section id="plants-section" class="dashboard-section" style="display: none;">
+            <h2>Plant Management</h2>
+        </section>
+
+        <section id="analytics-section" class="dashboard-section" style="display: none;">
+            <h2>Care Analytics</h2>
+        </section>
+
+        <section id="settings-section" class="dashboard-section" style="display: none;">
+            <h2>Settings</h2>
+        </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

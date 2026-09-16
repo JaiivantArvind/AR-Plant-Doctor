@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "ar-marker-generator": "file:ar-marker-generator",
+    "express": "^5.2.1"
+  }
+}

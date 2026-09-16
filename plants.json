@@ -2,26 +2,32 @@
   "1": {
     "name": "Peace Lily",
     "scientificName": "Spathiphyllum",
-    "lastWatered": "2026-09-05",
+    "lastWatered": "2026-08-25",
     "wateringIntervalDays": 7,
     "sunlight": "Medium indirect light",
     "tips": [
       "Keep soil consistently moist but not soggy.",
       "Drooping leaves indicate it needs water immediately."
     ],
-    "emoji": "🪴"
+    "emoji": "🪴",
+    "wateringHistory": [
+      "2026-09-15"
+    ]
   },
   "2": {
     "name": "Monstera",
     "scientificName": "Monstera deliciosa",
-    "lastWatered": "2026-09-05",
+    "lastWatered": "2026-09-15",
     "wateringIntervalDays": 10,
     "sunlight": "Bright indirect sunlight",
     "tips": [
       "Wipe leaves regularly to remove dust.",
       "Use a moss pole to support climbing vines."
     ],
-    "emoji": "🌿"
+    "emoji": "🌿",
+    "wateringHistory": [
+      "2026-09-15"
+    ]
   },
   "3": {
     "name": "Snake Plant",
@@ -33,30 +39,35 @@
       "Allow soil to dry completely between waterings.",
       "Avoid overwatering to prevent root rot."
     ],
-    "emoji": "🪴"
+    "emoji": "🪴",
+    "wateringHistory": []
   },
   "4": {
     "name": "Pothos",
     "scientificName": "Epipremnum aureum",
-    "lastWatered": "2026-09-13",
+    "lastWatered": "2026-08-25",
     "wateringIntervalDays": 7,
     "sunlight": "Moderate to bright indirect light",
     "tips": [
       "Trim yellowing leaves near the base.",
       "Easily propagates in clean water."
     ],
-    "emoji": "🌱"
+    "emoji": "🌱",
+    "wateringHistory": []
   },
   "5": {
     "name": "Aloe Vera",
     "scientificName": "Aloe barbadensis Miller",
-    "lastWatered": "2026-09-02",
+    "lastWatered": "2026-09-15",
     "wateringIntervalDays": 14,
     "sunlight": "Bright direct to indirect sunlight",
     "tips": [
       "Water deeply but infrequently.",
       "Ensure soil drains completely to protect roots."
     ],
-    "emoji": "🌵"
+    "emoji": "🌵",
+    "wateringHistory": [
+      "2026-09-15"
+    ]
   }
 }
