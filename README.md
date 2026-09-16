@@ -65,11 +65,31 @@ ARVR/
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
-- **Node.js** (v18.0.0 or higher)
+### ⚡ One-Click Launch (Windows — Recommended)
+
+The easiest way to run the application on Windows is using the included **`run_app.bat`** launcher. It handles all first-time setup automatically on any new system:
+
+1. Double-click **`run_app.bat`** (or run `.\run_app.bat` in your terminal).
+2. The launcher will automatically:
+   - ✅ Detect and configure **Node.js** in your PATH.
+   - ✅ Run **`npm install`** automatically if dependencies are not yet installed.
+   - ✅ Free port **3000** if occupied.
+   - ✅ Generate any missing pattern marker descriptors (`.patt` and `.png`).
+   - ✅ Start the **Express backend server**.
+   - ✅ Launch an **HTTPS tunnel** for mobile camera testing.
+   - ✅ Automatically open the **Care Dashboard** and **AR Camera** in your default web browser.
+
+---
+
+### 💻 Manual / Cross-Platform Setup (macOS / Linux / Windows)
+
+If you prefer to run manually or are on macOS/Linux:
+
+#### 1. Prerequisites
+- **Node.js** (v18.0.0 or higher) — [Download here](https://nodejs.org/)
 - A webcam or smartphone camera
 
-### 2. Installation
+#### 2. Installation
 Clone the repository and install the dependencies:
 ```bash
 git clone https://github.com/JaiivantArvind/AR-Plant-Doctor.git
@@ -77,22 +97,25 @@ cd AR-Plant-Doctor
 npm install
 ```
 
-### 3. Running the Server
+#### 3. Running the Server
 Start the local server:
 ```bash
 npm start
 ```
-*(On server launch, missing marker descriptors for all plants in `plants.json` are auto-generated automatically).*
+*(Alternatively, run `python run_app.py` for automated browser launch and tunnel setup).*
 
-### 4. Accessing the Application
+#### 4. Accessing the Application
 - **AR Camera View**: Open [http://localhost:3000](http://localhost:3000)
 - **Care Dashboard**: Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 
-> **Tip for Mobile Testing**: Mobile browsers require HTTPS for camera permissions. You can use **ngrok** to create a secure tunnel:
+> [!TIP]
+> **Mobile Phone Testing**: Mobile browsers (iOS Safari and Android Chrome) require a secure HTTPS context to grant camera permissions. Use a secure tunnel:
 > ```bash
+> npx localtunnel --port 3000
+> # or
 > npx ngrok http 3000
 > ```
-> Open the resulting `https://...ngrok-free.app` URL on your phone!
+> Open the generated `https://...` link on your phone's browser to scan markers directly!
 
 ---
 

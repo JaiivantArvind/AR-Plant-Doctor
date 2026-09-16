@@ -47,15 +47,15 @@ function daysUntilWater(lastWatered, intervalDays) {
 /**
  * Determines urgency color code based on days remaining.
  * @param {number} daysRemaining - Days remaining until next watering.
- * @returns {string} Hex color code (#52B788, #FFB703, or #E63946).
+ * @returns {string} Hex color code (#7ec897, #d4a843, or #e8735a).
  */
 function getUrgencyColor(daysRemaining) {
-    if (daysRemaining > 2) {
-        return '#52B788';
+    if (daysRemaining >= 3) {
+        return '#7ec897'; // OK (3+ days)
     } else if (daysRemaining >= 1) {
-        return '#FFB703';
+        return '#d4a843'; // Due soon (1-2 days)
     } else {
-        return '#E63946';
+        return '#e8735a'; // Overdue
     }
 }
 
@@ -73,10 +73,7 @@ async function initDynamicMarkers() {
         const infoBanner = document.getElementById('ar-overlay-info');
 
         for (const key of Object.keys(plantsCache)) {
-            const num = parseInt(key, 10);
-            if (isNaN(num) || num < 6) continue; // 1 to 5 are hardcoded pattern markers in HTML
-
-            const idStr = String(num);
+            const idStr = String(key);
             if (document.querySelector(`#marker-${idStr}`)) continue; // Avoid duplicate
 
             const markerEl = document.createElement('a-marker');
@@ -85,54 +82,79 @@ async function initDynamicMarkers() {
             markerEl.setAttribute('id', `marker-${idStr}`);
             markerEl.setAttribute('patternRatio', '0.75');
 
-            const planeEl = document.createElement('a-plane');
-            planeEl.setAttribute('position', '0 1.8 0');
-            planeEl.setAttribute('width', '2.4');
-            planeEl.setAttribute('height', '1.6');
-            planeEl.setAttribute('color', '#1A1A2E');
-            planeEl.setAttribute('opacity', '0.92');
+            // Main card background
+            const bgPlane = document.createElement('a-plane');
+            bgPlane.setAttribute('position', '0 1.8 0');
+            bgPlane.setAttribute('width', '2.2');
+            bgPlane.setAttribute('height', '1.6');
+            bgPlane.setAttribute('color', '#0a1a0d');
+            bgPlane.setAttribute('opacity', '0.94');
+            bgPlane.setAttribute('side', 'double');
 
+            // Name entity: geometry + text combined
+            const nameEl = document.createElement('a-entity');
+            nameEl.setAttribute('id', `name-${idStr}`);
+            nameEl.setAttribute('position', '0 2.52 0.01');
+            nameEl.setAttribute('geometry', 'primitive: plane; width: 2.2; height: 0.32');
+            nameEl.setAttribute('material', 'color: #162318; opacity: 0.0; transparent: true');
+            nameEl.setAttribute('text', 'value: Loading...; color: #e8f0e9; wrapCount: 22; width: 2.0; anchor: center; align: center; baseline: center; font: roboto');
+
+            // Divider 1
+            const div1 = document.createElement('a-plane');
+            div1.setAttribute('position', '0 2.35 0.01');
+            div1.setAttribute('width', '2.0');
+            div1.setAttribute('height', '0.01');
+            div1.setAttribute('color', '#2a3d2e');
+
+            // Water row entity
+            const waterEl = document.createElement('a-entity');
+            waterEl.setAttribute('id', `water-${idStr}`);
+            waterEl.setAttribute('position', '-0.9 2.18 0.01');
+            waterEl.setAttribute('text', 'value: 💧 Water status; color: #d4a843; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto');
+
+            // Divider 2
+            const div2 = document.createElement('a-plane');
+            div2.setAttribute('position', '0 2.0 0.01');
+            div2.setAttribute('width', '2.0');
+            div2.setAttribute('height', '0.01');
+            div2.setAttribute('color', '#2a3d2e');
+
+            // Sun row entity
+            const sunEl = document.createElement('a-entity');
+            sunEl.setAttribute('id', `sun-${idStr}`);
+            sunEl.setAttribute('position', '-0.9 1.82 0.01');
+            sunEl.setAttribute('text', 'value: ☀ Sunlight; color: #6b8f6e; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto');
+
+            // Divider 3
+            const div3 = document.createElement('a-plane');
+            div3.setAttribute('position', '0 1.65 0.01');
+            div3.setAttribute('width', '2.0');
+            div3.setAttribute('height', '0.01');
+            div3.setAttribute('color', '#2a3d2e');
+
+            // Tip row entity
+            const tipEl = document.createElement('a-entity');
+            tipEl.setAttribute('id', `tip-${idStr}`);
+            tipEl.setAttribute('position', '-0.9 1.42 0.01');
+            tipEl.setAttribute('text', 'value: 💡 Tip; color: #4a6b4e; wrapCount: 22; width: 1.9; anchor: left; align: left; baseline: center; font: roboto');
+
+            // Emoji top left of card
             const emojiEl = document.createElement('a-text');
             emojiEl.setAttribute('id', `emoji-${idStr}`);
-            emojiEl.setAttribute('position', '-0.9 2.3 0.05');
-            emojiEl.setAttribute('value', '🪴');
-            emojiEl.setAttribute('color', '#52B788');
-            emojiEl.setAttribute('width', '5');
+            emojiEl.setAttribute('position', '-0.75 2.52 0.02');
+            emojiEl.setAttribute('width', '0.8');
+            emojiEl.setAttribute('color', '#7ec897');
+            emojiEl.setAttribute('value', '🌿');
 
-            const nameEl = document.createElement('a-text');
-            nameEl.setAttribute('id', `name-${idStr}`);
-            nameEl.setAttribute('position', '-0.6 2.3 0.05');
-            nameEl.setAttribute('value', `PLANT #${idStr}`);
-            nameEl.setAttribute('color', '#FFFFFF');
-            nameEl.setAttribute('width', '4.5');
-
-            const waterEl = document.createElement('a-text');
-            waterEl.setAttribute('id', `water-${idStr}`);
-            waterEl.setAttribute('position', '-1.0 2.0 0.05');
-            waterEl.setAttribute('value', 'Water Status');
-            waterEl.setAttribute('color', '#FFD166');
-            waterEl.setAttribute('width', '3.5');
-
-            const sunEl = document.createElement('a-text');
-            sunEl.setAttribute('id', `sun-${idStr}`);
-            sunEl.setAttribute('position', '-1.0 1.7 0.05');
-            sunEl.setAttribute('value', 'Sunlight');
-            sunEl.setAttribute('color', '#B7E4C7');
-            sunEl.setAttribute('width', '3.0');
-
-            const tipEl = document.createElement('a-text');
-            tipEl.setAttribute('id', `tip-${idStr}`);
-            tipEl.setAttribute('position', '-1.0 1.4 0.05');
-            tipEl.setAttribute('value', 'Tip');
-            tipEl.setAttribute('color', '#B7E4C7');
-            tipEl.setAttribute('width', '2.6');
-
-            markerEl.appendChild(planeEl);
-            markerEl.appendChild(emojiEl);
+            markerEl.appendChild(bgPlane);
             markerEl.appendChild(nameEl);
+            markerEl.appendChild(div1);
             markerEl.appendChild(waterEl);
+            markerEl.appendChild(div2);
             markerEl.appendChild(sunEl);
+            markerEl.appendChild(div3);
             markerEl.appendChild(tipEl);
+            markerEl.appendChild(emojiEl);
 
             markerEl.addEventListener('markerFound', async () => {
                 await initMarker(idStr);
@@ -146,7 +168,7 @@ async function initDynamicMarkers() {
 
             markerEl.addEventListener('markerLost', () => {
                 if (infoBanner) {
-                    infoBanner.innerText = `🌿 AR Doctor Active: Scan Marker #1-5`;
+                    infoBanner.innerText = `🌿 AR Doctor Active: Scan a plant marker`;
                     infoBanner.style.borderColor = '#52B788';
                     infoBanner.style.color = '#52B788';
                 }
@@ -176,7 +198,19 @@ async function initMarker(markerId) {
     const daysRemaining = plant.wateringIntervalDays - daysPassed;
 
     const waterText = daysUntilWater(plant.lastWatered, plant.wateringIntervalDays);
-    const urgencyColor = getUrgencyColor(daysRemaining);
+    
+    // Urgency color logic:
+    // Overdue: #e8735a (terracotta)
+    // Due soon (1-2 days): #d4a843 (amber)
+    // OK (3+ days): #7ec897 (sage green)
+    let urgencyColor = '#7ec897';
+    if (daysRemaining < 1) {
+        urgencyColor = '#e8735a';
+    } else if (daysRemaining <= 2) {
+        urgencyColor = '#d4a843';
+    } else {
+        urgencyColor = '#7ec897';
+    }
 
     const nameEl = document.querySelector(`#name-${markerId}`);
     const waterEl = document.querySelector(`#water-${markerId}`);
@@ -184,27 +218,21 @@ async function initMarker(markerId) {
     const tipEl = document.querySelector(`#tip-${markerId}`);
     const emojiEl = document.querySelector(`#emoji-${markerId}`);
 
-    if (emojiEl && plant.emoji) {
-        emojiEl.setAttribute('value', plant.emoji);
-    }
     if (nameEl) {
-        const displayName = (plant.name || '').toUpperCase();
-        nameEl.setAttribute('value', displayName);
-        nameEl.setAttribute('color', '#FFFFFF');
+        nameEl.setAttribute('text', 'value', plant.name);
     }
     if (waterEl) {
-        waterEl.setAttribute('value', `WATER: ${waterText}`);
-        waterEl.setAttribute('color', urgencyColor);
+        waterEl.setAttribute('text', 'value', '💧 ' + waterText);
+        waterEl.setAttribute('text', 'color', urgencyColor);
     }
     if (sunEl) {
-        const sun = (plant.sunlight || '').substring(0, 30);
-        sunEl.setAttribute('value', `SUN: ${sun}`);
-        sunEl.setAttribute('color', '#B7E4C7');
+        sunEl.setAttribute('text', 'value', '☀ ' + plant.sunlight);
     }
     if (tipEl) {
-        const firstTip = (plant.tips && plant.tips.length > 0 ? plant.tips[0] : '').substring(0, 35);
-        tipEl.setAttribute('value', `TIP: ${firstTip}`);
-        tipEl.setAttribute('color', '#B7E4C7');
+        tipEl.setAttribute('text', 'value', '💡 ' + (plant.tips[0] || '').substring(0, 60));
+    }
+    if (emojiEl) {
+        emojiEl.setAttribute('value', plant.emoji || '🌿');
     }
 }
 
@@ -245,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         markerEl.addEventListener('markerLost', () => {
             if (infoBanner) {
-                infoBanner.innerText = `🌿 AR Doctor Active: Scan Marker #1-5`;
+                infoBanner.innerText = `🌿 AR Doctor Active: Scan a plant marker`;
                 infoBanner.style.borderColor = '#52B788';
                 infoBanner.style.color = '#52B788';
             }

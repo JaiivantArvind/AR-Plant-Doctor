@@ -4,10 +4,18 @@ import subprocess
 import time
 import webbrowser
 
-# Add Node.js directory to PATH environment variable if needed
-NODE_PATH = r"C:\Users\dhanv\nodejs"
-if NODE_PATH not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = NODE_PATH + os.pathsep + os.environ.get("PATH", "")
+# Add common Node.js directories to PATH environment variable if needed
+COMMON_NODE_PATHS = [
+    r"C:\Program Files\nodejs",
+    r"C:\Program Files (x86)\nodejs",
+    os.path.expandvars(r"%LOCALAPPDATA%\Programs\nodejs"),
+    os.path.expandvars(r"%USERPROFILE%\nodejs"),
+    r"C:\Users\dhanv\nodejs",
+]
+
+for p in COMMON_NODE_PATHS:
+    if os.path.exists(p) and p not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
 
 def main():
     print("=" * 60)
@@ -18,24 +26,34 @@ def main():
     project_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(project_dir)
 
+    # 1. Automatic dependency check (npm install)
+    node_modules_dir = os.path.join(project_dir, "node_modules")
+    if not os.path.exists(node_modules_dir):
+        print("\n[SETUP] First-time setup detected: Installing npm dependencies...")
+        npm_cmd = "npm.cmd" if sys.platform == "win32" else "npm"
+        try:
+            subprocess.run([npm_cmd, "install"], cwd=project_dir, check=True)
+            print("[SETUP] Dependencies installed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error installing dependencies: {e}")
+            input("\nPress Enter to exit...")
+            return
+
     print("\n[1/4] Checking port 3000 & Starting Express Server...")
 
     # Free port 3000 if occupied
     try:
         if sys.platform == "win32":
             subprocess.run(
-                ["powershell", "-Command", "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"],
+                ["powershell", "-NoProfile", "-Command", "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"],
                 capture_output=True
             )
     except Exception:
         pass
 
-    # Determine node executable path
-    node_exe = os.path.join(NODE_PATH, "node.exe")
-    node_cmd = node_exe if os.path.exists(node_exe) else "node"
-
+    # Start Express server
     try:
-        server_process = subprocess.Popen([node_cmd, "server.js"], cwd=project_dir)
+        server_process = subprocess.Popen(["node", "server.js"], cwd=project_dir)
     except Exception as e:
         print(f"\n❌ Error starting server: {e}")
         input("\nPress Enter to exit...")
@@ -44,14 +62,11 @@ def main():
     # Wait for server startup
     time.sleep(2)
 
-    print("\n[2/4] Launching ngrok HTTPS tunnel in a new terminal window...")
+    print("\n[2/4] Checking HTTPS tunnel for mobile testing...")
     try:
-        ngrok_cmd = os.path.join(NODE_PATH, "ngrok.cmd")
-        if not os.path.exists(ngrok_cmd):
-            ngrok_cmd = "ngrok"
-        subprocess.Popen(f'start "ngrok Tunnel" cmd /k "{ngrok_cmd} http 3000"', shell=True)
+        subprocess.Popen('start "ngrok Tunnel" cmd /k "ngrok http 3000"', shell=True)
     except Exception as e:
-        print(f"  ⚠️ Could not launch ngrok automatically: {e}")
+        print(f"  ℹ️ ngrok not launched automatically: {e}")
 
     ar_url = "http://localhost:3000"
     dashboard_url = "http://localhost:3000/dashboard"
@@ -60,7 +75,9 @@ def main():
     print("-" * 60)
     print(f"  📱 Local AR App:   {ar_url}")
     print(f"  📊 Dashboard:      {dashboard_url}")
-    print(f"  🌐 Mobile Testing: Check the HTTPS URL in the 'ngrok Tunnel' window!")
+    print(f"  🌐 Mobile Testing: For phone camera access, use an HTTPS tunnel:")
+    print(f"                     npx localtunnel --port 3000")
+    print(f"                     or: npx ngrok http 3000")
     print("-" * 60)
 
     print("\n[4/4] Opening browser tabs...")

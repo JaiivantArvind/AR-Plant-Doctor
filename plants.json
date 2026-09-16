@@ -2,7 +2,7 @@
   "1": {
     "name": "Peace Lily",
     "scientificName": "Spathiphyllum",
-    "lastWatered": "2026-08-25",
+    "lastWatered": "2026-09-16",
     "wateringIntervalDays": 7,
     "sunlight": "Medium indirect light",
     "tips": [
@@ -11,7 +11,8 @@
     ],
     "emoji": "🪴",
     "wateringHistory": [
-      "2026-09-15"
+      "2026-09-15",
+      "2026-09-16"
     ]
   },
   "2": {
@@ -69,5 +70,15 @@
     "wateringHistory": [
       "2026-09-15"
     ]
+  },
+  "6": {
+    "name": "aa",
+    "scientificName": "sd",
+    "emoji": "🪴",
+    "wateringIntervalDays": 7,
+    "sunlight": "",
+    "tips": [],
+    "lastWatered": "2026-09-16",
+    "wateringHistory": []
   }
 }
