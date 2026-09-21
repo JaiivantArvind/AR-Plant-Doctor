@@ -4,6 +4,16 @@ import subprocess
 import time
 import webbrowser
 
+# Fix Windows console encoding issues with emojis
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        if hasattr(sys.stderr, 'reconfigure'):
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 # Add common Node.js directories to PATH environment variable if needed
 COMMON_NODE_PATHS = [
     r"C:\Program Files\nodejs",
@@ -45,7 +55,7 @@ def main():
     try:
         if sys.platform == "win32":
             subprocess.run(
-                ["powershell", "-NoProfile", "-Command", "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"],
+                ["powershell", "-NoProfile", "-Command", "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess | Stop-Process -Force -ErrorAction SilentlyContinue"],
                 capture_output=True
             )
     except Exception:

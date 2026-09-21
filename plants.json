@@ -46,7 +46,7 @@
   "4": {
     "name": "Pothos",
     "scientificName": "Epipremnum aureum",
-    "lastWatered": "2026-08-25",
+    "lastWatered": "2026-09-21",
     "wateringIntervalDays": 7,
     "sunlight": "Moderate to bright indirect light",
     "tips": [
@@ -54,7 +54,9 @@
       "Easily propagates in clean water."
     ],
     "emoji": "🌱",
-    "wateringHistory": []
+    "wateringHistory": [
+      "2026-09-21"
+    ]
   },
   "5": {
     "name": "Aloe Vera",
