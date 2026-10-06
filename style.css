@@ -1,6 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;1,9..40,300;1,9..40,400;1,9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* AR Plant Doctor Stylesheet */
+/* ============================================================
+   AR PLANT DOCTOR — AR Camera Stylesheet
+   Premium AR scanning experience
+   ============================================================ */
+
+:root {
+    --bg-primary: #060C06;
+    --accent: #0FC61B;
+    --text-primary: #F6F8F6;
+    --text-secondary: #A5B3AF;
+    --text-tertiary: #6B7E74;
+    --surface: rgba(11, 21, 11, 0.88);
+    --border-subtle: rgba(30, 46, 31, 0.6);
+    --status-healthy: #0FC61B;
+    --status-attention: #D4A843;
+    --status-critical: #E8735A;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
 
 * {
     box-sizing: border-box;
@@ -9,31 +26,60 @@
 }
 
 body {
-    background: #0f1a14;
+    background: var(--bg-primary);
     overflow: hidden;
     margin: 0;
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-sans);
 }
+
+/* ============================================================
+   AR STATUS BANNER
+   ============================================================ */
 
 #ar-overlay-info {
     position: fixed;
-    top: 15px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
-    background: #0a1208;
-    border: 1px solid #2a3d2e;
-    color: #7ec897;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 400;
-    padding: 10px 18px;
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    color: var(--accent);
+    border-radius: 12px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 10px 20px;
     text-align: center;
-    font-size: 14px;
     pointer-events: none;
-    width: 85%;
-    max-width: 400px;
+    width: auto;
+    max-width: 420px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.01em;
+    transition: all 0.3s ease;
 }
+
+#ar-overlay-info .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ============================================================
+   LOADING SCREEN
+   ============================================================ */
 
 .loading-screen {
     position: fixed;
@@ -45,12 +91,101 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: #0f1a14;
-    color: #6b8f6e;
+    background: var(--bg-primary);
     z-index: 9999;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-family: var(--font-sans);
+    transition: opacity 0.5s ease;
+}
+
+.loading-screen .loading-icon {
+    width: 48px;
+    height: 48px;
+    border: 2px solid rgba(15, 198, 27, 0.15);
+    border-top: 2px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-screen .loading-title {
     font-size: 16px;
-    text-align: center;
-    padding: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.loading-screen .loading-sub {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+}
+
+/* ============================================================
+   AR BOTTOM CONTROLS
+   ============================================================ */
+
+.ar-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9998;
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-subtle);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.ar-controls a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.ar-controls .ar-btn-dashboard {
+    background: rgba(15, 198, 27, 0.08);
+    border: 1px solid rgba(15, 198, 27, 0.25);
+    color: var(--accent);
+}
+
+.ar-controls .ar-btn-dashboard:hover {
+    background: rgba(15, 198, 27, 0.15);
+}
+
+.ar-controls .ar-scan-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+}
+
+/* ============================================================
+   MARKER DETECTED INDICATOR
+   ============================================================ */
+
+#ar-overlay-info.marker-detected {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(15, 198, 27, 0.15);
+}
+
+#ar-overlay-info.marker-detected .status-indicator {
+    animation: none;
+    background: var(--accent);
 }

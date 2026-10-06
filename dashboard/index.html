@@ -3,38 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AR Plant Doctor — Intelligent plant care dashboard with AR scanning, watering analytics, and care tracking.">
     <title>AR Plant Doctor — Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-brand">🌿 Plant Doctor</div>
-        <div class="nav-links">
-            <button class="nav-btn active" data-section="home">Home</button>
-            <button class="nav-btn" data-section="plants">Plants</button>
-            <button class="nav-btn" data-section="analytics">Analytics</button>
-            <button class="nav-btn" data-section="settings">Settings</button>
+
+    <div class="app-shell">
+        <!-- ======== SIDEBAR (Desktop) ======== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>
+                    <span class="brand-icon">⌁</span>
+                    AR Plant Doctor
+                </h1>
+                <div class="brand-sub">Plant Care Intelligence</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-label">Dashboard</div>
+
+                <button class="nav-item active" data-section="home" id="nav-home">
+                    <span class="nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </span>
+                    Home
+                </button>
+
+                <button class="nav-item" data-section="plants" id="nav-plants">
+                    <span class="nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 8-7 8-12a8 8 0 0 0-16 0c0 5 4 8 8 12z"/><path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+                    </span>
+                    My Plants
+                </button>
+
+                <button class="nav-item" data-section="analytics" id="nav-analytics">
+                    <span class="nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    </span>
+                    Analytics
+                    <span class="nav-badge" id="analytics-badge" style="display:none;">0</span>
+                </button>
+
+                <button class="nav-item" data-section="settings" id="nav-settings">
+                    <span class="nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </span>
+                    Settings
+                </button>
+
+                <div class="sidebar-nav-label" style="margin-top: auto;">Quick Actions</div>
+
+                <a href="/" class="nav-item nav-item--scan" id="nav-scan-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Open AR Scanner
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                v1.0 — AR Plant Doctor
+            </div>
+        </aside>
+
+        <!-- ======== MOBILE HEADER ======== -->
+        <header class="mobile-header" id="mobile-header">
+            <h1>AR Plant Doctor</h1>
+            <a href="/" class="btn btn-sm btn-outline-accent" style="text-decoration:none;">AR Scan</a>
+        </header>
+
+        <!-- ======== MAIN CONTENT ======== -->
+        <div class="main-content">
+            <div class="content-wrapper">
+
+                <!-- HOME SECTION -->
+                <section id="home-section" class="dashboard-section">
+                    <div id="home-content">
+                        <div class="spinner"></div>
+                    </div>
+                </section>
+
+                <!-- PLANTS SECTION -->
+                <section id="plants-section" class="dashboard-section" style="display: none;">
+                    <div id="plants-content">
+                        <div class="spinner"></div>
+                    </div>
+                </section>
+
+                <!-- ANALYTICS SECTION -->
+                <section id="analytics-section" class="dashboard-section" style="display: none;">
+                    <div id="analytics-content">
+                        <div class="spinner"></div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS SECTION -->
+                <section id="settings-section" class="dashboard-section" style="display: none;">
+                    <div id="settings-content">
+                        <div class="spinner"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== BOTTOM NAV (Mobile) ======== -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <div class="bottom-nav-inner">
+            <button class="bottom-nav-item active" data-section="home" id="bnav-home">
+                <span class="bottom-nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </span>
+                Home
+            </button>
+            <button class="bottom-nav-item" data-section="plants" id="bnav-plants">
+                <span class="bottom-nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 8-7 8-12a8 8 0 0 0-16 0c0 5 4 8 8 12z"/><path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+                </span>
+                Plants
+            </button>
+            <a href="/" class="bottom-nav-item bottom-nav-item--scan" id="bnav-scan" style="text-decoration:none;">
+                <span class="bottom-nav-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </span>
+                Scan
+            </a>
+            <button class="bottom-nav-item" data-section="analytics" id="bnav-analytics">
+                <span class="bottom-nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                </span>
+                Analytics
+            </button>
+            <button class="bottom-nav-item" data-section="settings" id="bnav-settings">
+                <span class="bottom-nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </span>
+                More
+            </button>
         </div>
     </nav>
-
-    <main class="dashboard-content">
-        <section id="home-section" class="dashboard-section">
-            <div class="card-grid"></div>
-        </section>
-
-        <section id="plants-section" class="dashboard-section" style="display: none;">
-            <h2>Plant Management</h2>
-        </section>
-
-        <section id="analytics-section" class="dashboard-section" style="display: none;">
-            <h2>Care Analytics</h2>
-        </section>
-
-        <section id="settings-section" class="dashboard-section" style="display: none;">
-            <h2>Settings</h2>
-        </section>
-    </main>
 
     <script src="dashboard.js"></script>
 </body>

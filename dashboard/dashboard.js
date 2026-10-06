@@ -1,23 +1,21 @@
-// Dashboard Logic - AR Plant Doctor
+// ============================================================
+// AR Plant Doctor — Dashboard Logic
+// Premium Plant Care Intelligence
+// ============================================================
 
-/**
- * Displays a fixed bottom-right toast message that auto-dismisses after 3 seconds.
- * @param {string} message - Toast message text.
- * @param {string} type - Toast type ('success' or 'error').
- */
+// ---- Toast Notification System ----
+
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px;';
+        container.className = 'toast-container';
         document.body.appendChild(container);
     }
 
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    const bgColor = type === 'error' ? '#E63946' : '#52B788';
-    toast.style.cssText = `background-color: ${bgColor}; color: #1a1a2e; font-weight: bold; padding: 0.75rem 1.25rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: opacity 0.3s ease;`;
+    toast.className = `toast toast--${type}`;
     toast.innerText = message;
 
     container.appendChild(toast);
@@ -28,36 +26,19 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-/**
- * Displays spinner loading indicator in section card grids.
- */
-function showSpinners() {
-    const grids = document.querySelectorAll('.dashboard-section .card-grid');
-    grids.forEach(grid => {
-        grid.innerHTML = '<div class="spinner"></div>';
-    });
-}
+// ---- Data Layer ----
 
-/**
- * Fetches plant dataset from backend GET /api/plants endpoint.
- * @returns {Promise<Object>} Object containing plant entries keyed by ID.
- */
 async function loadPlants() {
     try {
         const response = await fetch('/api/plants');
         return await response.json();
     } catch (err) {
         console.error('Failed to load plants:', err);
-        showToast('Failed to load plants', 'error');
+        showToast('Failed to load plant data', 'error');
         return {};
     }
 }
 
-/**
- * Saves plant dataset to backend POST /api/plants endpoint.
- * @param {Object} plants - Updated plants object.
- * @returns {Promise<Object>} Server response.
- */
 async function savePlants(plants) {
     try {
         const response = await fetch('/api/plants', {
@@ -66,23 +47,60 @@ async function savePlants(plants) {
             body: JSON.stringify(plants)
         });
         const data = await response.json();
-        showToast('Saved!', 'success');
+        showToast('Changes saved', 'success');
         return data;
     } catch (err) {
         console.error('Failed to save plants:', err);
-        showToast('Save failed', 'error');
+        showToast('Save failed. Please try again.', 'error');
     }
 }
 
-/**
- * Opens a new tab displaying the generated marker image for printing.
- * @param {string|number} markerId - Marker ID.
- * @param {string} plantName - Name of the plant.
- */
+// ---- Urgency Calculation ----
+
+function getUrgency(plant) {
+    const last = new Date(plant.lastWatered);
+    const lastUtc = Date.UTC(last.getFullYear(), last.getMonth(), last.getDate());
+    const now = new Date();
+    const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const daysPassed = Math.floor((nowUtc - lastUtc) / (1000 * 60 * 60 * 24));
+    const daysRemaining = plant.wateringIntervalDays - daysPassed;
+
+    let label, status, statusClass;
+    if (daysRemaining < 0) {
+        label = `Overdue by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`;
+        status = 'critical';
+        statusClass = 'critical';
+    } else if (daysRemaining === 0) {
+        label = 'Water today';
+        status = 'attention';
+        statusClass = 'attention';
+    } else if (daysRemaining === 1) {
+        label = 'Water tomorrow';
+        status = 'attention';
+        statusClass = 'attention';
+    } else {
+        label = `Water in ${daysRemaining} days`;
+        status = 'healthy';
+        statusClass = 'healthy';
+    }
+
+    return { label, status, statusClass, days: daysRemaining };
+}
+
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+}
+
+// ---- Marker Print ----
+
 function openMarkerPrintPage(markerId, plantName) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-        alert('Please allow pop-ups to view and print the marker.');
+        showToast('Please allow pop-ups to print markers.', 'error');
         return;
     }
 
@@ -93,89 +111,88 @@ function openMarkerPrintPage(markerId, plantName) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Print AR Marker - ${plantName}</title>
+    <title>Print AR Marker — ${plantName}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         body {
-            background-color: #ffffff;
-            color: #1a1a2e;
-            font-family: Arial, sans-serif;
+            background: #ffffff;
+            color: #111;
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            padding: 40px 20px;
         }
-        h1 {
-            color: #1B4332;
-            margin-bottom: 0.25rem;
-            font-size: 2rem;
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
         }
-        p.sub {
-            color: #1B4332;
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            font-weight: bold;
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 4px;
+            color: #111;
+        }
+        .header p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
         }
         .marker-container {
-            margin: 1rem 0;
-            border: 2px solid #ccc;
-            padding: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 16px;
             background: #fff;
+            border-radius: 8px;
+            margin: 16px 0;
         }
         .marker-container img {
             width: 400px;
             height: 400px;
             image-rendering: pixelated;
+            display: block;
         }
-        p.instructions {
-            max-width: 450px;
+        .instructions {
+            max-width: 420px;
             text-align: center;
-            color: #333;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            margin-top: 1.5rem;
+            color: #555;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 16px 0;
         }
         .print-btn {
-            background-color: #1B4332;
-            color: #ffffff;
+            background: #111;
+            color: #fff;
             border: none;
-            padding: 0.75rem 1.75rem;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
+            padding: 12px 32px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 1rem;
+            margin-top: 8px;
         }
+        .print-btn:hover { opacity: 0.85; }
         @media print {
-            .print-btn {
-                display: none !important;
-            }
-            body {
-                padding: 0;
-                justify-content: flex-start;
-            }
-            .marker-container img {
-                width: 80vw;
-                height: 80vw;
-                max-width: 500px;
-                max-height: 500px;
-            }
+            .print-btn { display: none !important; }
+            body { padding: 0; justify-content: flex-start; }
+            .marker-container img { width: 80vw; height: 80vw; max-width: 500px; max-height: 500px; }
         }
     </style>
 </head>
 <body>
-    <h1>${plantName}</h1>
-    <p class="sub">AR Marker #${idStr}</p>
+    <div class="header">
+        <h1>${plantName}</h1>
+        <p>AR Marker #${idStr} — AR Plant Doctor</p>
+    </div>
     <div class="marker-container">
         <img src="${markerImgSrc}" alt="AR Marker #${idStr}">
     </div>
     <p class="instructions">
-        Print this page and attach to your plant pot. Point the AR Plant Doctor camera at this pattern marker.
+        Print this marker and place it near your plant. Point the AR Plant Doctor camera at this marker to instantly see care status and health information.
     </p>
-    <button class="print-btn" onclick="window.print()">Save / Print</button>
+    <button class="print-btn" onclick="window.print()">Print Marker</button>
 </body>
 </html>`;
 
@@ -183,101 +200,246 @@ function openMarkerPrintPage(markerId, plantName) {
     printWindow.document.close();
 }
 
-/**
- * Calculates watering urgency and remaining days for a plant.
- * @param {Object} plant - Plant object.
- * @returns {Object} Object containing label, color, and remaining days.
- */
-function getUrgency(plant) {
-    const last = new Date(plant.lastWatered);
-    const lastUtc = Date.UTC(last.getFullYear(), last.getMonth(), last.getDate());
-    const now = new Date();
-    const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+// ============================================================
+// RENDER: HOME SECTION
+// ============================================================
 
-    const daysPassed = Math.floor((nowUtc - lastUtc) / (1000 * 60 * 60 * 24));
-    const daysRemaining = plant.wateringIntervalDays - daysPassed;
-
-    let label, color;
-    if (daysRemaining < 0) {
-        label = `⚠ Overdue by ${Math.abs(daysRemaining)} days`;
-        color = '#E63946';
-    } else if (daysRemaining <= 1) {
-        label = '💧 Water today!';
-        color = '#FFB703';
-    } else {
-        label = `Water in ${daysRemaining} days`;
-        color = '#52B788';
-    }
-
-    return { label, color, days: daysRemaining };
-}
-
-/**
- * Renders plant cards inside the home section card grid.
- * @param {Object} plants - Plant dataset.
- */
 function renderHome(plants) {
-    const grid = document.querySelector('#home-section .card-grid');
-    if (!grid) return;
+    const container = document.getElementById('home-content');
+    if (!container) return;
 
-    if (!plants || Object.keys(plants).length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #a0aec0; font-size: 1.2rem;">No plants yet — add one in My Plants 🌿</div>';
+    const entries = Object.entries(plants || {});
+
+    if (entries.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🌱</div>
+                <h4>Your garden is empty</h4>
+                <p>Add your first plant to start tracking watering, care, and AR information.</p>
+                <button class="btn btn-md btn-primary" id="empty-add-plant">Add Your First Plant</button>
+            </div>`;
+        const addBtn = document.getElementById('empty-add-plant');
+        if (addBtn) addBtn.addEventListener('click', () => switchSection('plants'));
         return;
     }
 
-    grid.innerHTML = '';
+    // Calculate stats
+    let healthyCount = 0, attentionCount = 0, criticalCount = 0;
+    const careItems = [];
 
-    Object.entries(plants).forEach(([id, plant]) => {
+    entries.forEach(([id, plant]) => {
         const urgency = getUrgency(plant);
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <div style="font-size: 3rem; margin-bottom: 0.5rem;">${plant.emoji || '🪴'}</div>
-            <h3 style="margin-bottom: 0.25rem; font-size: 1.25rem;">${plant.name}</h3>
-            <p style="color: #b7e4c7; font-size: 0.9rem; margin-bottom: 0.75rem;">${plant.scientificName || ''}</p>
-            <div style="margin-bottom: 1rem;">
-                <span class="urgency-badge" style="background-color: ${urgency.color}; color: #1a1a2e; padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: bold; font-size: 0.85rem; display: inline-block;">
-                    ${urgency.label}
-                </span>
-            </div>
-            <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 1rem;">
-                Last Watered: ${plant.lastWatered} (${plant.wateringIntervalDays}d interval)
-            </p>
-            <button class="water-btn" data-id="${id}" style="background-color: #52B788; color: #1a1a2e; border: none; padding: 0.55rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%;">
-                🌿 Mark Watered
-            </button>
-        `;
+        if (urgency.status === 'healthy') healthyCount++;
+        else if (urgency.status === 'attention') attentionCount++;
+        else criticalCount++;
 
-        const btn = card.querySelector('.water-btn');
-        btn.addEventListener('click', async () => {
-            const today = new Date().toISOString().split('T')[0];
-            plant.lastWatered = today;
-            if (!Array.isArray(plant.wateringHistory)) {
-                plant.wateringHistory = [];
-            }
-            plant.wateringHistory.push(today);
-            await savePlants(plants);
-            renderHome(plants);
-            renderPlants(plants);
-            renderAnalytics(plants);
+        careItems.push({ id, plant, urgency });
+    });
+
+    // Sort: critical first, then attention, then healthy
+    careItems.sort((a, b) => a.urgency.days - b.urgency.days);
+
+    // Build hero
+    const totalPlants = entries.length;
+    const gardenStatus = criticalCount > 0 ? 'Some plants need your attention.' :
+                         attentionCount > 0 ? 'Your garden is mostly healthy.' :
+                         'Your garden is looking great.';
+
+    let html = `
+        <div class="dashboard-hero">
+            <div class="hero-greeting">${getGreeting()}, Plant Doctor</div>
+            <div class="hero-title">${gardenStatus}</div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">${totalPlants}</div>
+                    <div class="hero-stat-label">Total Plants</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value hero-stat-value--healthy">${healthyCount}</div>
+                    <div class="hero-stat-label">Healthy</div>
+                </div>`;
+
+    if (attentionCount > 0) {
+        html += `
+                <div class="hero-stat">
+                    <div class="hero-stat-value hero-stat-value--attention">${attentionCount}</div>
+                    <div class="hero-stat-label">Needs Care</div>
+                </div>`;
+    }
+
+    if (criticalCount > 0) {
+        html += `
+                <div class="hero-stat">
+                    <div class="hero-stat-value hero-stat-value--critical">${criticalCount}</div>
+                    <div class="hero-stat-label">Overdue</div>
+                </div>`;
+    }
+
+    html += `
+            </div>
+        </div>`;
+
+    // AR CTA
+    html += `
+        <a href="/" class="ar-cta" id="ar-cta-home">
+            <div class="ar-cta-icon">📷</div>
+            <div class="ar-cta-body">
+                <h4>Scan a Plant</h4>
+                <p>Point your camera at a marker to see real-time care status</p>
+            </div>
+            <span class="ar-cta-arrow">→</span>
+        </a>`;
+
+    // Today's Care
+    const urgentItems = careItems.filter(c => c.urgency.days <= 1);
+    const upcomingItems = careItems.filter(c => c.urgency.days > 1);
+
+    if (urgentItems.length > 0) {
+        html += `
+        <div class="section-label">
+            <h3>Needs Attention</h3>
+            <span class="section-count">${urgentItems.length} plant${urgentItems.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="care-list">`;
+
+        urgentItems.forEach(({ id, plant, urgency }) => {
+            const indicatorClass = urgency.status === 'critical' ? 'care-item-indicator--critical' : 'care-item-indicator--attention';
+            const statusColor = urgency.status === 'critical' ? 'var(--status-critical)' : 'var(--status-attention)';
+            const btnClass = urgency.status === 'critical' ? 'btn-water--solid' : 'btn-water';
+
+            html += `
+            <div class="care-item">
+                <div class="care-item-indicator ${indicatorClass}">
+                    ${plant.emoji || '🪴'}
+                </div>
+                <div class="care-item-body">
+                    <div class="care-item-name">${plant.name}</div>
+                    <div class="care-item-status" style="color: ${statusColor}">
+                        <span class="status-dot" style="background: ${statusColor}"></span>
+                        ${urgency.label}
+                    </div>
+                </div>
+                <div class="care-item-action">
+                    <button class="btn-water ${btnClass}" data-water-id="${id}">Water Now</button>
+                </div>
+            </div>`;
         });
 
-        grid.appendChild(card);
+        html += `</div>`;
+    }
+
+    // Upcoming
+    if (upcomingItems.length > 0) {
+        html += `
+        <div class="section-label">
+            <h3>Upcoming Care</h3>
+            <span class="section-count">${upcomingItems.length} plant${upcomingItems.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="care-list">`;
+
+        upcomingItems.forEach(({ id, plant, urgency }) => {
+            html += `
+            <div class="care-item">
+                <div class="care-item-indicator care-item-indicator--healthy">
+                    ${plant.emoji || '🪴'}
+                </div>
+                <div class="care-item-body">
+                    <div class="care-item-name">${plant.name}</div>
+                    <div class="care-item-status" style="color: var(--status-healthy)">
+                        <span class="status-dot" style="background: var(--status-healthy)"></span>
+                        ${urgency.label}
+                    </div>
+                </div>
+                <div class="care-item-action">
+                    <button class="btn-water" data-water-id="${id}">Water</button>
+                </div>
+            </div>`;
+        });
+
+        html += `</div>`;
+    }
+
+    // Quick collection preview
+    html += `
+        <div class="section-label" style="margin-top: var(--space-2xl);">
+            <h3>Your Collection</h3>
+            <button class="btn btn-sm btn-ghost" id="view-all-plants">View All →</button>
+        </div>
+        <div class="card-grid">`;
+
+    entries.slice(0, 6).forEach(([id, plant]) => {
+        const urgency = getUrgency(plant);
+        const statusLabel = urgency.status === 'critical' ? 'Overdue' :
+                            urgency.status === 'attention' ? 'Needs Care' : 'Healthy';
+
+        html += `
+            <div class="plant-card" data-plant-id="${id}">
+                <div class="plant-card-visual">${plant.emoji || '🪴'}</div>
+                <div class="plant-card-status plant-card-status--${urgency.statusClass}">${statusLabel}</div>
+                <div class="plant-card-name">${plant.name}</div>
+                <div class="plant-card-scientific">${plant.scientificName || ''}</div>
+                <div class="plant-card-meta">
+                    <div class="plant-card-meta-item">
+                        <span class="meta-icon">💧</span>
+                        ${urgency.label}
+                    </div>
+                    <div class="plant-card-meta-item">
+                        <span class="meta-icon">☀️</span>
+                        ${plant.sunlight || 'Not specified'}
+                    </div>
+                </div>
+            </div>`;
     });
+
+    html += `</div>`;
+
+    container.innerHTML = html;
+
+    // Wire events
+    container.querySelectorAll('[data-water-id]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const plantId = btn.dataset.waterId;
+            const plant = plants[plantId];
+            if (!plant) return;
+
+            const today = new Date().toISOString().split('T')[0];
+            plant.lastWatered = today;
+            if (!Array.isArray(plant.wateringHistory)) plant.wateringHistory = [];
+            plant.wateringHistory.push(today);
+
+            await savePlants(plants);
+            renderHome(plants);
+            renderAnalytics(plants);
+        });
+    });
+
+    container.querySelectorAll('.plant-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const plantId = card.dataset.plantId;
+            switchSection('plants');
+            setTimeout(() => renderDetail(plants, plantId), 50);
+        });
+    });
+
+    const viewAllBtn = document.getElementById('view-all-plants');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => switchSection('plants'));
+    }
 }
 
-/**
- * Renders detailed view for a selected plant.
- * @param {Object} plants - Plant dataset.
- * @param {string} id - Selected plant ID.
- */
+// ============================================================
+// RENDER: PLANT DETAIL VIEW
+// ============================================================
+
 function renderDetail(plants, id) {
-    const container = document.getElementById('plants-section');
+    const container = document.getElementById('plants-content');
     if (!container) return;
 
     const plant = plants[id];
     if (!plant) return;
 
+    const urgency = getUrgency(plant);
     const last = new Date(plant.lastWatered);
     const lastUtc = Date.UTC(last.getFullYear(), last.getMonth(), last.getDate());
     const now = new Date();
@@ -285,96 +447,166 @@ function renderDetail(plants, id) {
     const daysSince = Math.floor((nowUtc - lastUtc) / (1000 * 60 * 60 * 24));
 
     const history = Array.isArray(plant.wateringHistory) ? [...plant.wateringHistory].reverse() : [];
-    const historyRows = history.length > 0 
-        ? history.map(d => `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #0f3460;">${d}</td></tr>`).join('')
-        : '<tr><td style="padding: 0.5rem; color: #a0aec0;">No watering history recorded.</td></tr>';
-
     const tip1 = plant.tips && plant.tips[0] ? plant.tips[0] : '';
     const tip2 = plant.tips && plant.tips[1] ? plant.tips[1] : '';
 
-    container.innerHTML = `
-        <div style="margin-bottom: 1.5rem;">
-            <button class="back-btn" style="background: #16213e; color: #b7e4c7; border: 1px solid #0f3460; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 1rem;">
-                ← Back
-            </button>
-            <button class="print-marker-btn" style="background: #1B4332; color: #ffffff; border: 1px solid #52B788; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 1rem; margin-left: 0.5rem;">
-                🖨 View & Print Marker
-            </button>
-            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">${plant.emoji || '🪴'} ${plant.name}</h2>
-            <p style="color: #b7e4c7; font-size: 1rem; margin-bottom: 1rem;">${plant.scientificName || ''}</p>
-            <p style="font-size: 1.1rem; color: #FFD166; font-weight: bold; margin-bottom: 1.5rem;">
-                Days since last watered: ${daysSince}
-            </p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-            <div class="card">
-                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #0f3460; padding-bottom: 0.5rem;">Watering History</h3>
-                <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 0.5rem; border-bottom: 2px solid #0f3460; color: #b7e4c7;">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${historyRows}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="card">
-                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #0f3460; padding-bottom: 0.5rem;">Edit Plant Details</h3>
-                <form id="detail-edit-form">
-                    <div style="margin-bottom: 0.75rem;">
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Name</label>
-                        <input type="text" id="detail-name" value="${plant.name || ''}" required style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div style="margin-bottom: 0.75rem;">
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Scientific Name</label>
-                        <input type="text" id="detail-scientific" value="${plant.scientificName || ''}" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
-                        <div>
-                            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Emoji</label>
-                            <input type="text" id="detail-emoji" value="${plant.emoji || ''}" required style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Interval (Days)</label>
-                            <input type="number" id="detail-interval" value="${plant.wateringIntervalDays || 7}" required min="1" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 0.75rem;">
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Sunlight</label>
-                        <input type="text" id="detail-sunlight" value="${plant.sunlight || ''}" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div style="margin-bottom: 0.75rem;">
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Tip 1</label>
-                        <input type="text" id="detail-tip1" value="${tip1}" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Tip 2</label>
-                        <input type="text" id="detail-tip2" value="${tip2}" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <button type="submit" style="background-color: #52B788; color: #1a1a2e; border: none; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%;">
-                        Save Changes
-                    </button>
-                </form>
-            </div>
-        </div>
-    `;
-
-    container.querySelector('.back-btn').addEventListener('click', () => {
-        renderPlants(plants);
-    });
-
-    const printBtn = container.querySelector('.print-marker-btn');
-    if (printBtn) {
-        printBtn.addEventListener('click', () => {
-            openMarkerPrintPage(id, plant.name);
-        });
+    let historyHtml = '';
+    if (history.length > 0) {
+        historyHtml = history.map(d => `<tr><td>${d}</td></tr>`).join('');
+    } else {
+        historyHtml = `<tr><td style="color: var(--text-tertiary)">No watering history recorded yet.</td></tr>`;
     }
 
-    container.querySelector('#detail-edit-form').addEventListener('submit', async (e) => {
+    // Care tips
+    let tipsHtml = '';
+    if (plant.tips && plant.tips.length > 0) {
+        tipsHtml = `
+            <div class="card" style="margin-bottom: var(--space-xl);">
+                <div class="card-header">
+                    <h4 class="card-title">Care Tips</h4>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                    ${plant.tips.map(tip => `
+                        <div style="display: flex; gap: var(--space-sm); font-size: 13px; color: var(--text-secondary); padding: var(--space-sm) 0;">
+                            <span style="color: var(--accent); flex-shrink: 0;">•</span>
+                            ${tip}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+    }
+
+    container.innerHTML = `
+        <div class="plant-detail">
+            <!-- Back nav -->
+            <div style="margin-bottom: var(--space-xl);">
+                <button class="btn btn-sm btn-secondary" id="detail-back-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back to Plants
+                </button>
+            </div>
+
+            <!-- Header -->
+            <div class="plant-detail-header">
+                <div class="plant-detail-visual">${plant.emoji || '🪴'}</div>
+                <div class="plant-detail-info">
+                    <h2 class="plant-detail-name">${plant.name}</h2>
+                    <div class="plant-detail-scientific">${plant.scientificName || ''}</div>
+                    <div class="plant-detail-stats">
+                        <div class="detail-stat">
+                            <div class="detail-stat-label">Status</div>
+                            <div class="detail-stat-value" style="color: var(--status-${urgency.statusClass})">${urgency.label}</div>
+                        </div>
+                        <div class="detail-stat">
+                            <div class="detail-stat-label">Days Since Watered</div>
+                            <div class="detail-stat-value">${daysSince}</div>
+                        </div>
+                        <div class="detail-stat">
+                            <div class="detail-stat-label">Interval</div>
+                            <div class="detail-stat-value">${plant.wateringIntervalDays} days</div>
+                        </div>
+                        <div class="detail-stat">
+                            <div class="detail-stat-label">Sunlight</div>
+                            <div class="detail-stat-value">${plant.sunlight || 'Not specified'}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="plant-detail-actions">
+                    <button class="btn btn-md btn-primary" id="detail-water-btn">
+                        💧 Water Now
+                    </button>
+                    <button class="btn btn-md btn-outline-accent" id="detail-print-btn">
+                        🖨 Print Marker
+                    </button>
+                    <a href="/" class="btn btn-md btn-secondary" style="text-decoration:none;">
+                        📷 Open in AR
+                    </a>
+                </div>
+            </div>
+
+            ${tipsHtml}
+
+            <!-- Detail grid -->
+            <div class="plant-detail-grid">
+                <!-- Watering History -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Watering History</h4>
+                        <span class="card-subtitle">${history.length} record${history.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Date</th></tr>
+                        </thead>
+                        <tbody>
+                            ${historyHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Edit Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Edit Plant Details</h4>
+                    </div>
+                    <form id="detail-edit-form">
+                        <div class="form-group">
+                            <label class="form-label">Plant Name</label>
+                            <input type="text" class="form-input" id="detail-name" value="${plant.name || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Scientific Name</label>
+                            <input type="text" class="form-input" id="detail-scientific" value="${plant.scientificName || ''}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Emoji</label>
+                                <input type="text" class="form-input" id="detail-emoji" value="${plant.emoji || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Interval (Days)</label>
+                                <input type="number" class="form-input" id="detail-interval" value="${plant.wateringIntervalDays || 7}" required min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sunlight</label>
+                            <input type="text" class="form-input" id="detail-sunlight" value="${plant.sunlight || ''}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Care Tip 1</label>
+                                <input type="text" class="form-input" id="detail-tip1" value="${tip1}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Care Tip 2</label>
+                                <input type="text" class="form-input" id="detail-tip2" value="${tip2}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-md btn-primary" style="width: 100%;">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>`;
+
+    // Wire events
+    document.getElementById('detail-back-btn').addEventListener('click', () => renderPlants(plants));
+
+    document.getElementById('detail-water-btn').addEventListener('click', async () => {
+        const today = new Date().toISOString().split('T')[0];
+        plant.lastWatered = today;
+        if (!Array.isArray(plant.wateringHistory)) plant.wateringHistory = [];
+        plant.wateringHistory.push(today);
+        await savePlants(plants);
+        renderDetail(plants, id);
+        renderHome(plants);
+        renderAnalytics(plants);
+    });
+
+    document.getElementById('detail-print-btn').addEventListener('click', () => {
+        openMarkerPrintPage(id, plant.name);
+    });
+
+    document.getElementById('detail-edit-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         plant.name = document.getElementById('detail-name').value.trim();
         plant.scientificName = document.getElementById('detail-scientific').value.trim();
@@ -387,150 +619,198 @@ function renderDetail(plants, id) {
         ].filter(Boolean);
 
         await savePlants(plants);
-        renderPlants(plants);
+        renderDetail(plants, id);
         renderHome(plants);
         renderAnalytics(plants);
     });
 }
 
-/**
- * Renders the plant management view in #plants-section, including an Add Plant form
- * and a list of existing plants with Edit and Delete options.
- * @param {Object} plants - Plant dataset.
- */
+// ============================================================
+// RENDER: PLANTS MANAGEMENT
+// ============================================================
+
 function renderPlants(plants) {
-    const container = document.getElementById('plants-section');
+    const container = document.getElementById('plants-content');
     if (!container) return;
 
-    container.innerHTML = `
-        <h2>Plant Management</h2>
-        
-        <div class="card" style="margin: 1.5rem 0; max-width: 600px;">
-            <h3 id="form-title" style="margin-bottom: 1rem;">Add Plant</h3>
-            <form id="plant-form">
-                <input type="hidden" id="edit-id" value="">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Plant Name</label>
-                        <input type="text" id="plant-name" required placeholder="e.g. Monstera" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Scientific Name</label>
-                        <input type="text" id="plant-scientific" placeholder="e.g. Monstera deliciosa" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Emoji</label>
-                        <input type="text" id="plant-emoji" required placeholder="🌿" value="🪴" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Watering Interval (Days)</label>
-                        <input type="number" id="plant-interval" required min="1" value="7" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Sunlight Requirements</label>
-                    <input type="text" id="plant-sunlight" placeholder="e.g. Bright indirect sunlight" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Tip 1</label>
-                        <input type="text" id="plant-tip1" placeholder="Care tip 1" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Tip 2</label>
-                        <input type="text" id="plant-tip2" placeholder="Care tip 2" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #0f3460; background: #1a1a2e; color: #fff;">
-                    </div>
-                </div>
-                <button type="submit" id="submit-btn" style="background-color: #52B788; color: #1a1a2e; border: none; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                    Save Plant
-                </button>
-            </form>
+    const entries = Object.entries(plants || {});
+
+    let html = `
+        <div class="section-header">
+            <h2>My Plants</h2>
+            <p>Manage your plant collection, edit details, and generate AR markers.</p>
         </div>
 
-        <h3 style="margin: 1.5rem 0 1rem 0;">Existing Plants</h3>
-        <div class="card-grid" id="plants-list-grid"></div>
-    `;
-
-    const form = document.getElementById('plant-form');
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const editId = document.getElementById('edit-id').value;
-        const name = document.getElementById('plant-name').value.trim();
-        const scientificName = document.getElementById('plant-scientific').value.trim();
-        const emoji = document.getElementById('plant-emoji').value.trim();
-        const wateringIntervalDays = parseInt(document.getElementById('plant-interval').value, 10) || 7;
-        const sunlight = document.getElementById('plant-sunlight').value.trim();
-        const tip1 = document.getElementById('plant-tip1').value.trim();
-        const tip2 = document.getElementById('plant-tip2').value.trim();
-        const tips = [tip1, tip2].filter(Boolean);
-
-        let targetId = editId;
-        if (!targetId) {
-            const numericKeys = Object.keys(plants).map(Number).filter(n => !isNaN(n));
-            const maxKey = numericKeys.length > 0 ? Math.max(...numericKeys) : 0;
-            targetId = String(maxKey + 1);
-        }
-
-        const existingHistory = (plants[targetId] && Array.isArray(plants[targetId].wateringHistory)) ? plants[targetId].wateringHistory : [];
-        const todayStr = new Date().toISOString().split('T')[0];
-
-        plants[targetId] = {
-            name,
-            scientificName,
-            emoji,
-            wateringIntervalDays,
-            sunlight,
-            tips,
-            lastWatered: plants[targetId] ? plants[targetId].lastWatered : todayStr,
-            wateringHistory: existingHistory
-        };
-
-        const isNew = !editId;
-
-        await savePlants(plants);
-        renderPlants(plants);
-        renderHome(plants);
-        renderAnalytics(plants);
-
-        if (isNew) {
-            try {
-                await fetch('/api/generate-marker', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ plantId: targetId, plantName: name })
-                });
-            } catch (err) {
-                console.error('Error auto-generating marker:', err);
-            }
-            showToast(`Plant added! Marker #${targetId} auto-generated — print it from the plant detail page.`, 'success');
-        }
-    });
-
-    const listGrid = document.getElementById('plants-list-grid');
-    Object.entries(plants).forEach(([id, plant]) => {
-        const item = document.createElement('div');
-        item.className = 'card';
-        item.innerHTML = `
-            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">${plant.emoji || '🪴'}</div>
-            <h3 class="plant-name-link" style="font-size: 1.1rem; margin-bottom: 0.25rem; cursor: pointer; text-decoration: underline; color: #52B788;">[${id}] ${plant.name}</h3>
-            <p style="color: #b7e4c7; font-size: 0.85rem; margin-bottom: 0.5rem;">${plant.scientificName || ''}</p>
-            <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">Interval: ${plant.wateringIntervalDays} days</p>
-            <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 1rem;">Sunlight: ${plant.sunlight || 'N/A'}</p>
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="edit-btn" style="flex: 1; background: #FFB703; color: #1a1a2e; border: none; padding: 0.4rem; border-radius: 4px; font-weight: bold; cursor: pointer;">Edit</button>
-                <button class="delete-btn" style="flex: 1; background: #E63946; color: #fff; border: none; padding: 0.4rem; border-radius: 4px; font-weight: bold; cursor: pointer;">Delete</button>
+        <!-- Add Plant Form -->
+        <div class="card" style="margin-bottom: var(--space-2xl); max-width: 640px;">
+            <div class="card-header">
+                <h4 class="card-title" id="form-title">Add New Plant</h4>
             </div>
-        `;
+            <form id="plant-form">
+                <input type="hidden" id="edit-id" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Plant Name</label>
+                        <input type="text" class="form-input" id="plant-name" required placeholder="e.g. Monstera">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Scientific Name</label>
+                        <input type="text" class="form-input" id="plant-scientific" placeholder="e.g. Monstera deliciosa">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Emoji</label>
+                        <input type="text" class="form-input" id="plant-emoji" required placeholder="🌿" value="🪴">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Watering Interval (Days)</label>
+                        <input type="number" class="form-input" id="plant-interval" required min="1" value="7">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sunlight Requirements</label>
+                    <input type="text" class="form-input" id="plant-sunlight" placeholder="e.g. Bright indirect sunlight">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Care Tip 1</label>
+                        <input type="text" class="form-input" id="plant-tip1" placeholder="Care tip">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Care Tip 2</label>
+                        <input type="text" class="form-input" id="plant-tip2" placeholder="Care tip">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-md btn-primary" id="submit-btn">Add Plant & Generate Marker</button>
+            </form>
+        </div>`;
 
-        item.querySelector('.plant-name-link').addEventListener('click', () => {
-            renderDetail(plants, id);
+    // Plant list
+    if (entries.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">🌿</div>
+                <h4>No plants yet</h4>
+                <p>Use the form above to add your first plant and start your garden.</p>
+            </div>`;
+    } else {
+        html += `
+            <div class="section-label">
+                <h3>Your Plants</h3>
+                <span class="section-count">${entries.length} plant${entries.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="card-grid">`;
+
+        entries.forEach(([id, plant]) => {
+            const urgency = getUrgency(plant);
+            const statusLabel = urgency.status === 'critical' ? 'Overdue' :
+                                urgency.status === 'attention' ? 'Needs Care' : 'Healthy';
+
+            html += `
+                <div class="plant-card" data-plant-id="${id}" style="cursor: default;">
+                    <div class="plant-card-visual">${plant.emoji || '🪴'}</div>
+                    <div class="plant-card-status plant-card-status--${urgency.statusClass}">${statusLabel}</div>
+                    <div class="plant-card-name" style="cursor: pointer; text-decoration: none;" data-detail-id="${id}">${plant.name}</div>
+                    <div class="plant-card-scientific">${plant.scientificName || ''}</div>
+                    <div class="plant-card-meta">
+                        <div class="plant-card-meta-item">
+                            <span class="meta-icon">💧</span>
+                            ${urgency.label}
+                        </div>
+                        <div class="plant-card-meta-item">
+                            <span class="meta-icon">☀️</span>
+                            ${plant.sunlight || 'Not specified'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-lg);">
+                        <button class="btn btn-sm btn-secondary" style="flex: 1;" data-detail-id="${id}">View</button>
+                        <button class="btn btn-sm btn-outline-warning edit-plant-btn" data-edit-id="${id}">Edit</button>
+                        <button class="btn btn-sm btn-destructive delete-plant-btn" data-delete-id="${id}">Delete</button>
+                    </div>
+                </div>`;
         });
 
-        item.querySelector('.edit-btn').addEventListener('click', () => {
-            document.getElementById('form-title').innerText = `Edit Plant #${id}`;
-            document.getElementById('edit-id').value = id;
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
+
+    // Wire events
+    const form = document.getElementById('plant-form');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
+            const name = document.getElementById('plant-name').value.trim();
+            const scientificName = document.getElementById('plant-scientific').value.trim();
+            const emoji = document.getElementById('plant-emoji').value.trim();
+            const wateringIntervalDays = parseInt(document.getElementById('plant-interval').value, 10) || 7;
+            const sunlight = document.getElementById('plant-sunlight').value.trim();
+            const tip1 = document.getElementById('plant-tip1').value.trim();
+            const tip2 = document.getElementById('plant-tip2').value.trim();
+            const tips = [tip1, tip2].filter(Boolean);
+
+            let targetId = editId;
+            if (!targetId) {
+                const numericKeys = Object.keys(plants).map(Number).filter(n => !isNaN(n));
+                const maxKey = numericKeys.length > 0 ? Math.max(...numericKeys) : 0;
+                targetId = String(maxKey + 1);
+            }
+
+            const existingHistory = (plants[targetId] && Array.isArray(plants[targetId].wateringHistory)) ? plants[targetId].wateringHistory : [];
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            plants[targetId] = {
+                name,
+                scientificName,
+                emoji,
+                wateringIntervalDays,
+                sunlight,
+                tips,
+                lastWatered: plants[targetId] ? plants[targetId].lastWatered : todayStr,
+                wateringHistory: existingHistory
+            };
+
+            const isNew = !editId;
+
+            await savePlants(plants);
+            renderPlants(plants);
+            renderHome(plants);
+            renderAnalytics(plants);
+
+            if (isNew) {
+                try {
+                    await fetch('/api/generate-marker', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plantId: targetId, plantName: name })
+                    });
+                } catch (err) {
+                    console.error('Error auto-generating marker:', err);
+                }
+                showToast(`${name} added! Marker #${targetId} generated — print it from the plant detail page.`, 'success');
+            }
+        });
+    }
+
+    // Detail view links
+    container.querySelectorAll('[data-detail-id]').forEach(el => {
+        el.addEventListener('click', () => {
+            renderDetail(plants, el.dataset.detailId);
+        });
+    });
+
+    // Edit buttons
+    container.querySelectorAll('.edit-plant-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const editId = btn.dataset.editId;
+            const plant = plants[editId];
+            if (!plant) return;
+
+            document.getElementById('form-title').innerText = `Edit Plant #${editId}`;
+            document.getElementById('edit-id').value = editId;
             document.getElementById('plant-name').value = plant.name || '';
             document.getElementById('plant-scientific').value = plant.scientificName || '';
             document.getElementById('plant-emoji').value = plant.emoji || '';
@@ -538,80 +818,141 @@ function renderPlants(plants) {
             document.getElementById('plant-sunlight').value = plant.sunlight || '';
             document.getElementById('plant-tip1').value = plant.tips && plant.tips[0] ? plant.tips[0] : '';
             document.getElementById('plant-tip2').value = plant.tips && plant.tips[1] ? plant.tips[1] : '';
+            document.getElementById('submit-btn').innerText = 'Save Changes';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+    });
 
-        item.querySelector('.delete-btn').addEventListener('click', async () => {
+    // Delete buttons
+    container.querySelectorAll('.delete-plant-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const deleteId = btn.dataset.deleteId;
+            const plant = plants[deleteId];
+            if (!plant) return;
+
             if (confirm(`Are you sure you want to delete ${plant.name}?`)) {
-                delete plants[id];
+                delete plants[deleteId];
                 await savePlants(plants);
                 renderPlants(plants);
                 renderHome(plants);
                 renderAnalytics(plants);
             }
         });
-
-        listGrid.appendChild(item);
     });
 }
 
-/**
- * Renders care analytics including a Chart.js horizontal bar chart of 30-day watering counts
- * and overdue plant badge count.
- * @param {Object} plants - Plant dataset.
- */
+// ============================================================
+// RENDER: ANALYTICS
+// ============================================================
+
 function renderAnalytics(plants) {
-    const container = document.getElementById('analytics-section');
+    const container = document.getElementById('analytics-content');
     if (!container) return;
 
-    let overdueCount = 0;
+    const entries = Object.entries(plants || {});
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+    let overdueCount = 0;
+    let totalWaterings30d = 0;
+    let totalWaterings7d = 0;
+    let daysWithActivity = new Set();
     const labels = [];
     const counts = [];
+    let mostWatered = { name: '—', count: 0 };
 
-    Object.values(plants).forEach(plant => {
+    entries.forEach(([id, plant]) => {
+        const urgency = getUrgency(plant);
+        if (urgency.days <= 0) overdueCount++;
+
         labels.push(plant.name);
         const history = Array.isArray(plant.wateringHistory) ? plant.wateringHistory : [];
-        const recentCount = history.filter(d => new Date(d) >= thirtyDaysAgo).length;
-        counts.push(recentCount);
+        const recent30 = history.filter(d => new Date(d) >= thirtyDaysAgo);
+        const recent7 = history.filter(d => new Date(d) >= sevenDaysAgo);
+        counts.push(recent30.length);
+        totalWaterings30d += recent30.length;
+        totalWaterings7d += recent7.length;
 
-        const urgency = getUrgency(plant);
-        if (urgency.days <= 0) {
-            overdueCount++;
+        recent7.forEach(d => daysWithActivity.add(d));
+        if (recent30.length > mostWatered.count) {
+            mostWatered = { name: plant.name, count: recent30.length };
         }
     });
 
-    container.innerHTML = `
-        <h2>Care Analytics</h2>
-        <div class="card" style="margin-top: 1.5rem; padding: 1.5rem;">
-            <h3 style="margin-bottom: 1rem; color: #b7e4c7;">Watering Activity (Last 30 Days)</h3>
-            <div style="position: relative; width: 100%; min-height: 300px;">
+    const careConsistency = Math.min(7, daysWithActivity.size);
+
+    // Update analytics badge
+    const sidebarBadge = document.getElementById('analytics-badge');
+    if (sidebarBadge) {
+        if (overdueCount > 0) {
+            sidebarBadge.style.display = 'inline';
+            sidebarBadge.innerText = overdueCount;
+        } else {
+            sidebarBadge.style.display = 'none';
+        }
+    }
+
+    let html = `
+        <div class="section-header">
+            <h2>Care Analytics</h2>
+            <p>Track your plant care activity and watering consistency.</p>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metric-row">
+            <div class="metric-card">
+                <div class="metric-card-label">Total Plants</div>
+                <div class="metric-card-value">${entries.length}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-card-label">Waterings (30d)</div>
+                <div class="metric-card-value metric-card-value--accent">${totalWaterings30d}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-card-label">Overdue</div>
+                <div class="metric-card-value ${overdueCount > 0 ? 'metric-card-value--danger' : ''}">${overdueCount}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-card-label">7-Day Streak</div>
+                <div class="metric-card-value">${careConsistency}/7</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card" style="margin-bottom: var(--space-xl);">
+            <div class="card-header">
+                <h4 class="card-title">Watering Activity — Last 30 Days</h4>
+            </div>
+            <div class="chart-container">
                 <canvas id="watering-chart"></canvas>
             </div>
         </div>
 
-        <div class="card" style="margin-top: 1.5rem; padding: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <h3 style="margin-bottom: 0.25rem;">Overdue Plants</h3>
-                <p style="color: #a0aec0; font-size: 0.9rem;">Plants requiring immediate watering attention</p>
+        <!-- Additional insights -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Most Active Plant</h4>
+                </div>
+                <div style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">${mostWatered.name}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary);">${mostWatered.count} watering${mostWatered.count !== 1 ? 's' : ''} in 30 days</div>
             </div>
-            <div style="background-color: #E63946; color: #ffffff; font-size: 1.5rem; font-weight: bold; padding: 0.5rem 1.25rem; border-radius: 9999px;">
-                ${overdueCount} Overdue
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Plants Needing Attention</h4>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 600; color: ${overdueCount > 0 ? 'var(--danger)' : 'var(--accent)'}; margin-bottom: 4px;">
+                    ${overdueCount}
+                </div>
+                <div style="font-size: 13px; color: var(--text-tertiary);">
+                    ${overdueCount > 0 ? 'Plants requiring immediate watering' : 'All plants are on schedule'}
+                </div>
             </div>
-        </div>
-    `;
+        </div>`;
 
-    // Update Analytics nav badge
-    const analyticsBtn = document.querySelector('.nav-btn[data-section="analytics"]');
-    if (analyticsBtn) {
-        if (overdueCount > 0) {
-            analyticsBtn.innerHTML = `Analytics <span style="background-color: #E63946; color: white; border-radius: 9999px; padding: 0.15rem 0.45rem; font-size: 0.75rem; margin-left: 0.25rem;">${overdueCount}</span>`;
-        } else {
-            analyticsBtn.innerText = 'Analytics';
-        }
-    }
+    container.innerHTML = html;
 
     // Render Chart.js
     const canvas = document.getElementById('watering-chart');
@@ -624,11 +965,13 @@ function renderAnalytics(plants) {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Waterings in Last 30 Days',
+                    label: 'Waterings (30 days)',
                     data: counts,
-                    backgroundColor: '#52B788',
-                    borderColor: '#52B788',
-                    borderWidth: 1
+                    backgroundColor: 'rgba(15, 198, 27, 0.6)',
+                    borderColor: 'rgba(15, 198, 27, 0.8)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.65
                 }]
             },
             options: {
@@ -636,15 +979,36 @@ function renderAnalytics(plants) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#162318',
+                        titleColor: '#F6F8F6',
+                        bodyColor: '#A5B3AF',
+                        borderColor: '#263827',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        padding: 12,
+                        titleFont: { family: 'Inter', size: 13, weight: '500' },
+                        bodyFont: { family: 'Inter', size: 12 }
+                    }
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#b7e4c7', precision: 0 },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        ticks: {
+                            color: '#6B7E74',
+                            font: { family: 'Inter', size: 11 },
+                            precision: 0
+                        },
+                        grid: {
+                            color: 'rgba(30, 46, 31, 0.5)',
+                            drawBorder: false
+                        }
                     },
                     y: {
-                        ticks: { color: '#ffffff' },
+                        ticks: {
+                            color: '#A5B3AF',
+                            font: { family: 'Inter', size: 12 }
+                        },
                         grid: { display: false }
                     }
                 }
@@ -653,59 +1017,61 @@ function renderAnalytics(plants) {
     }
 }
 
-/**
- * Renders the Settings view in #settings-section.
- * @param {Object} plants - Plant dataset.
- */
+// ============================================================
+// RENDER: SETTINGS
+// ============================================================
+
 function renderSettings(plants) {
-    const container = document.getElementById('settings-section');
+    const container = document.getElementById('settings-content');
     if (!container) return;
 
     const currentPermission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
 
     container.innerHTML = `
-        <h2>Settings</h2>
-        <div class="card" style="margin-top: 1.5rem; max-width: 600px; padding: 1.5rem;">
-            <h3 style="margin-bottom: 0.5rem;">Notifications</h3>
-            <p style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 1.25rem;">
-                Receive browser alerts when any plant is due or overdue for watering.
-            </p>
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <span style="font-weight: bold;">Permission Status:</span>
-                    <span id="notification-status" style="margin-left: 0.5rem; color: #b7e4c7; text-transform: capitalize;">
-                        ${currentPermission}
-                    </span>
-                </div>
-                <button id="enable-notifications-btn" style="background-color: #52B788; color: #1a1a2e; border: none; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                    Enable Notifications
-                </button>
-            </div>
+        <div class="section-header">
+            <h2>Settings</h2>
+            <p>Configure notifications, markers, and application preferences.</p>
+        </div>
 
-            <div style="margin-top: 1.5rem; border-top: 1px solid #0f3460; padding-top: 1.5rem;">
-                <h3 style="margin-bottom: 0.5rem;">Marker Storage</h3>
-                <p style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 1rem;">
-                    Regenerate custom AR pattern markers for all plants.
-                </p>
-                <button id="generate-all-markers-btn" style="background-color: #1B4332; color: #ffffff; border: 1px solid #52B788; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                    Generate All Markers
-                </button>
+        <div class="settings-card">
+            <h3>Browser Notifications</h3>
+            <p>Receive alerts when any plant is due or overdue for watering.</p>
+            <div class="settings-row">
+                <div class="settings-status">
+                    <strong>Permission Status:</strong>
+                    <span id="notification-status" style="text-transform: capitalize; margin-left: 6px; color: var(--botanical);">${currentPermission}</span>
+                </div>
+                <button class="btn btn-md btn-primary" id="enable-notifications-btn">Enable Notifications</button>
             </div>
         </div>
-    `;
 
-    const btn = document.getElementById('enable-notifications-btn');
-    if (btn) {
-        btn.addEventListener('click', async () => {
+        <div class="settings-card">
+            <h3>Marker Generation</h3>
+            <p>Regenerate custom AR pattern markers for all plants. This is useful after adding new plants or if markers become corrupted.</p>
+            <button class="btn btn-md btn-outline-accent" id="generate-all-markers-btn">
+                Generate All Markers
+            </button>
+        </div>
+
+        <div class="settings-card">
+            <h3>AR Camera</h3>
+            <p>Open the AR scanner to detect plant markers in real-time.</p>
+            <a href="/" class="btn btn-md btn-secondary" style="text-decoration:none;">Open AR Scanner</a>
+        </div>`;
+
+    // Wire events
+    const notifBtn = document.getElementById('enable-notifications-btn');
+    if (notifBtn) {
+        notifBtn.addEventListener('click', async () => {
             if (typeof Notification !== 'undefined') {
                 const permission = await Notification.requestPermission();
                 const statusEl = document.getElementById('notification-status');
                 if (statusEl) statusEl.innerText = permission;
                 if (permission === 'granted') {
-                    alert('Notifications enabled successfully!');
+                    showToast('Notifications enabled successfully!', 'success');
                 }
             } else {
-                alert('Notifications API is not supported in this browser.');
+                showToast('Notifications are not supported in this browser.', 'error');
             }
         });
     }
@@ -713,6 +1079,8 @@ function renderSettings(plants) {
     const genBtn = document.getElementById('generate-all-markers-btn');
     if (genBtn) {
         genBtn.addEventListener('click', async () => {
+            genBtn.disabled = true;
+            genBtn.innerText = 'Generating...';
             const keys = Object.keys(plants);
             for (const key of keys) {
                 await fetch('/api/generate-marker', {
@@ -721,15 +1089,39 @@ function renderSettings(plants) {
                     body: JSON.stringify({ plantId: key, plantName: plants[key].name })
                 });
             }
-            showToast("All markers generated and saved", "success");
+            genBtn.disabled = false;
+            genBtn.innerText = 'Generate All Markers';
+            showToast(`${keys.length} markers generated successfully`, 'success');
         });
     }
 }
 
-/**
- * Periodically sends CHECK_PLANTS message to service worker.
- * @param {Object} plants - Plant dataset.
- */
+// ============================================================
+// NAVIGATION SYSTEM
+// ============================================================
+
+function switchSection(targetSection) {
+    const sections = document.querySelectorAll('.dashboard-section');
+    sections.forEach(sec => sec.style.display = 'none');
+
+    const target = document.getElementById(`${targetSection}-section`);
+    if (target) target.style.display = 'block';
+
+    // Update sidebar nav
+    document.querySelectorAll('.sidebar .nav-item[data-section]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.section === targetSection);
+    });
+
+    // Update bottom nav
+    document.querySelectorAll('.bottom-nav-item[data-section]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.section === targetSection);
+    });
+}
+
+// ============================================================
+// SERVICE WORKER & CARE CHECKS
+// ============================================================
+
 function scheduleCheck(plants) {
     const sendCheck = () => {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -744,7 +1136,10 @@ function scheduleCheck(plants) {
     setInterval(sendCheck, 60000);
 }
 
-// Navigation and initialization listener
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
     // Register Service Worker
     if ('serviceWorker' in navigator) {
@@ -753,26 +1148,17 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => console.error('ServiceWorker registration failed:', err));
     }
 
-    // Navigation section switching
-    const navButtons = document.querySelectorAll('.nav-btn[data-section]');
-    const sections = document.querySelectorAll('.dashboard-section');
-
-    navButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetSectionId = `${btn.dataset.section}-section`;
-            sections.forEach(sec => sec.style.display = 'none');
-            const targetSection = document.getElementById(targetSectionId);
-            if (targetSection) targetSection.style.display = 'block';
-
-            navButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
+    // Navigation — Sidebar
+    document.querySelectorAll('.sidebar .nav-item[data-section]').forEach(btn => {
+        btn.addEventListener('click', () => switchSection(btn.dataset.section));
     });
 
-    // Show loading spinners initially
-    showSpinners();
+    // Navigation — Bottom nav
+    document.querySelectorAll('.bottom-nav-item[data-section]').forEach(btn => {
+        btn.addEventListener('click', () => switchSection(btn.dataset.section));
+    });
 
-    // Initial load and render
+    // Load data and render
     loadPlants().then(plants => {
         if (plants) {
             renderHome(plants);

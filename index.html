@@ -5,22 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Meta tag / permission policy for camera access -->
     <meta http-equiv="Permissions-Policy" content="camera=*">
-    <title>AR Plant Doctor</title>
-    
+    <meta name="description" content="AR Plant Doctor — Point your camera at a plant marker to see real-time care status, watering needs, and health information.">
+    <title>AR Plant Doctor — Scanner</title>
+
     <!-- A-Frame 1.4.0 CDN -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    
+
     <!-- AR.js for A-Frame CDN (Master Build) -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Live 2D HTML Status Banner -->
-    <div id="ar-overlay-info">🌿 AR Doctor Active: Scan a plant marker</div>
+    <!-- AR Status Banner -->
+    <div id="ar-overlay-info">
+        <span class="status-indicator"></span>
+        <span id="ar-status-text">Scanning — Locate a plant marker</span>
+    </div>
 
-    <div class="loading-screen">
-        <p>Scan a plant marker</p>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-icon"></div>
+        <div class="loading-title">AR Plant Doctor</div>
+        <div class="loading-sub">Initializing camera and markers…</div>
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.75;">
@@ -262,6 +269,15 @@
         <!-- Camera Entity -->
         <a-entity camera></a-entity>
     </a-scene>
+
+    <!-- AR Bottom Controls -->
+    <div class="ar-controls">
+        <span class="ar-scan-label">AR Plant Doctor</span>
+        <a href="/dashboard/" class="ar-btn-dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard
+        </a>
+    </div>
 
     <script src="app.js"></script>
 </body>

@@ -1,9 +1,12 @@
-// AR Plant Doctor - Main Application Script
+// ============================================================
+// AR Plant Doctor — AR Application Script
+// Premium AR scanning experience
+// ============================================================
 
 let plantsCache = null;
 
 /**
- * Fetches plant data from plants.json and caches the result.
+ * Fetches plant data from /api/plants and caches the result.
  * Automatically re-fetches if markerId is missing in cache.
  * @param {string} markerId - The marker ID (key) to look up.
  * @returns {Promise<Object|null>} Matching plant object or null if not found.
@@ -60,6 +63,27 @@ function getUrgencyColor(daysRemaining) {
 }
 
 /**
+ * Updates the AR status banner text and style.
+ * @param {string} text - Status text to display.
+ * @param {string} mode - 'scanning', 'detected', or 'lost'.
+ */
+function updateStatusBanner(text, mode) {
+    const banner = document.getElementById('ar-overlay-info');
+    const statusText = document.getElementById('ar-status-text');
+    if (!banner || !statusText) return;
+
+    statusText.innerText = text;
+
+    if (mode === 'detected') {
+        banner.classList.add('marker-detected');
+        banner.style.color = '#D4A843';
+    } else {
+        banner.classList.remove('marker-detected');
+        banner.style.color = '#0FC61B';
+    }
+}
+
+/**
  * Dynamically fetches plant data and appends <a-marker type="pattern"> elements for plant keys >= 6.
  */
 async function initDynamicMarkers() {
@@ -69,8 +93,6 @@ async function initDynamicMarkers() {
         plantsCache = await response.json();
         const scene = document.querySelector('a-scene');
         if (!scene) return;
-
-        const infoBanner = document.getElementById('ar-overlay-info');
 
         for (const key of Object.keys(plantsCache)) {
             const idStr = String(key);
@@ -159,19 +181,13 @@ async function initDynamicMarkers() {
             markerEl.addEventListener('markerFound', async () => {
                 await initMarker(idStr);
                 const plant = plantsCache && plantsCache[idStr] ? plantsCache[idStr] : null;
-                if (infoBanner && plant) {
-                    infoBanner.innerText = `🌿 Marker #${idStr} Detected: ${plant.name}`;
-                    infoBanner.style.borderColor = '#FFD166';
-                    infoBanner.style.color = '#FFD166';
+                if (plant) {
+                    updateStatusBanner(`Marker #${idStr} Detected — ${plant.name}`, 'detected');
                 }
             });
 
             markerEl.addEventListener('markerLost', () => {
-                if (infoBanner) {
-                    infoBanner.innerText = `🌿 AR Doctor Active: Scan a plant marker`;
-                    infoBanner.style.borderColor = '#52B788';
-                    infoBanner.style.color = '#52B788';
-                }
+                updateStatusBanner('Scanning — Locate a plant marker', 'scanning');
             });
 
             scene.appendChild(markerEl);
@@ -198,7 +214,7 @@ async function initMarker(markerId) {
     const daysRemaining = plant.wateringIntervalDays - daysPassed;
 
     const waterText = daysUntilWater(plant.lastWatered, plant.wateringIntervalDays);
-    
+
     // Urgency color logic:
     // Overdue: #e8735a (terracotta)
     // Due soon (1-2 days): #d4a843 (amber)
@@ -250,33 +266,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (id) await initMarker(id);
     }
 
-    // 4. Hide loading screen after 3 seconds
-    setTimeout(() => {
-        const ls = document.querySelector('.loading-screen');
-        if (ls) ls.style.display = 'none';
-    }, 3000);
+    // 4. Hide loading screen after scene is ready
+    const loadingScreen = document.getElementById('loading-screen');
+    const hideLoading = () => {
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
+        }
+    };
+
+    // Try to detect scene loaded, fallback to timeout
+    const scene = document.querySelector('a-scene');
+    if (scene) {
+        if (scene.hasLoaded) {
+            hideLoading();
+        } else {
+            scene.addEventListener('loaded', hideLoading);
+            // Safety fallback
+            setTimeout(hideLoading, 5000);
+        }
+    } else {
+        setTimeout(hideLoading, 3000);
+    }
 
     // 5. Wire initial markers in DOM
-    const infoBanner = document.getElementById('ar-overlay-info');
-
     allMarkers.forEach((markerEl) => {
         const id = markerEl.id.replace('marker-', '');
         markerEl.addEventListener('markerFound', async () => {
             await initMarker(id);
             const plant = plantsCache && plantsCache[id] ? plantsCache[id] : null;
-            if (infoBanner && plant) {
-                infoBanner.innerText = `🌿 Marker #${id} Detected: ${plant.name}`;
-                infoBanner.style.borderColor = '#FFD166';
-                infoBanner.style.color = '#FFD166';
+            if (plant) {
+                updateStatusBanner(`Marker #${id} Detected — ${plant.name}`, 'detected');
             }
         });
 
         markerEl.addEventListener('markerLost', () => {
-            if (infoBanner) {
-                infoBanner.innerText = `🌿 AR Doctor Active: Scan a plant marker`;
-                infoBanner.style.borderColor = '#52B788';
-                infoBanner.style.color = '#52B788';
-            }
+            updateStatusBanner('Scanning — Locate a plant marker', 'scanning');
         });
     });
 });
