@@ -3,278 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Meta tag / permission policy for camera access -->
     <meta http-equiv="Permissions-Policy" content="camera=*">
-    <meta name="description" content="AR Plant Doctor — Point your camera at a plant marker to see real-time care status, watering needs, and health information.">
+    <meta name="description" content="AR Plant Doctor — Point your camera at a plant marker to see real-time care status.">
     <title>AR Plant Doctor — Scanner</title>
 
-    <!-- A-Frame 1.4.0 CDN -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-
-    <!-- AR.js for A-Frame CDN (Master Build) -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <!-- AR Status Banner -->
-    <div id="ar-overlay-info">
-        <span class="status-indicator"></span>
-        <span id="ar-status-text">Scanning — Locate a plant marker</span>
+    <div id="ar-status-bar">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="ar-status-text">Scanning — point at a plant marker</span>
     </div>
 
     <!-- Loading Screen -->
-    <div class="loading-screen" id="loading-screen">
-        <div class="loading-icon"></div>
-        <div class="loading-title">AR Plant Doctor</div>
-        <div class="loading-sub">Initializing camera and markers…</div>
+    <div id="loading-screen">
+        <div class="loading-ring"></div>
+        <div class="loading-logo">🌿 AR Plant Doctor</div>
+        <div class="loading-sub">Starting camera…</div>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.75;">
-        <a-marker type="pattern" url="/markers/marker-1.patt" id="marker-1" patternRatio="0.75">
-            <!-- Main card background -->
-            <a-plane position="0 1.8 0" width="2.2" height="1.6" color="#0a1a0d" opacity="0.94" side="double"></a-plane>
+    <!--
+        smooth:true          — enables pose smoothing
+        smoothCount:10       — samples over 10 frames
+        smoothTolerance:0.01 — ignores sub-pixel jitter
+        smoothThreshold:2    — minimum movement threshold
+    -->
+    <a-scene
+        embedded
+        arjs="sourceType: webcam;
+              debugUIEnabled: false;
+              patternRatio: 0.75;
+              smooth: true;
+              smoothCount: 10;
+              smoothTolerance: 0.01;
+              smoothThreshold: 2;">
 
-            <!-- Header entity: geometry + text combined — text auto-fits geometry width -->
-            <a-entity
-              position="0 2.52 0.01"
-              geometry="primitive: plane; width: 2.2; height: 0.32"
-              material="color: #162318; opacity: 0.0; transparent: true"
-              text="value: Loading...; color: #e8f0e9; wrapCount: 22; width: 2.0; anchor: center; align: center; baseline: center; font: roboto"
-              id="name-1">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.35 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Water row entity -->
-            <a-entity
-              position="-0.9 2.18 0.01"
-              text="value: 💧 Water status; color: #d4a843; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="water-1">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.0 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Sun row entity -->
-            <a-entity
-              position="-0.9 1.82 0.01"
-              text="value: ☀ Sunlight; color: #6b8f6e; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="sun-1">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 1.65 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Tip row entity -->
-            <a-entity
-              position="-0.9 1.42 0.01"
-              text="value: 💡 Tip; color: #4a6b4e; wrapCount: 22; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="tip-1">
-            </a-entity>
-
-            <!-- Emoji top left of card -->
-            <a-text id="emoji-1" value="🌿" position="-0.75 2.52 0.02" width="0.8" color="#7ec897"></a-text>
-        </a-marker>
-
-        <a-marker type="pattern" url="/markers/marker-2.patt" id="marker-2" patternRatio="0.75">
-            <!-- Main card background -->
-            <a-plane position="0 1.8 0" width="2.2" height="1.6" color="#0a1a0d" opacity="0.94" side="double"></a-plane>
-
-            <!-- Header entity: geometry + text combined — text auto-fits geometry width -->
-            <a-entity
-              position="0 2.52 0.01"
-              geometry="primitive: plane; width: 2.2; height: 0.32"
-              material="color: #162318; opacity: 0.0; transparent: true"
-              text="value: Loading...; color: #e8f0e9; wrapCount: 22; width: 2.0; anchor: center; align: center; baseline: center; font: roboto"
-              id="name-2">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.35 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Water row entity -->
-            <a-entity
-              position="-0.9 2.18 0.01"
-              text="value: 💧 Water status; color: #d4a843; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="water-2">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.0 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Sun row entity -->
-            <a-entity
-              position="-0.9 1.82 0.01"
-              text="value: ☀ Sunlight; color: #6b8f6e; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="sun-2">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 1.65 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Tip row entity -->
-            <a-entity
-              position="-0.9 1.42 0.01"
-              text="value: 💡 Tip; color: #4a6b4e; wrapCount: 22; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="tip-2">
-            </a-entity>
-
-            <!-- Emoji top left of card -->
-            <a-text id="emoji-2" value="🌿" position="-0.75 2.52 0.02" width="0.8" color="#7ec897"></a-text>
-        </a-marker>
-
-        <a-marker type="pattern" url="/markers/marker-3.patt" id="marker-3" patternRatio="0.75">
-            <!-- Main card background -->
-            <a-plane position="0 1.8 0" width="2.2" height="1.6" color="#0a1a0d" opacity="0.94" side="double"></a-plane>
-
-            <!-- Header entity: geometry + text combined — text auto-fits geometry width -->
-            <a-entity
-              position="0 2.52 0.01"
-              geometry="primitive: plane; width: 2.2; height: 0.32"
-              material="color: #162318; opacity: 0.0; transparent: true"
-              text="value: Loading...; color: #e8f0e9; wrapCount: 22; width: 2.0; anchor: center; align: center; baseline: center; font: roboto"
-              id="name-3">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.35 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Water row entity -->
-            <a-entity
-              position="-0.9 2.18 0.01"
-              text="value: 💧 Water status; color: #d4a843; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="water-3">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.0 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Sun row entity -->
-            <a-entity
-              position="-0.9 1.82 0.01"
-              text="value: ☀ Sunlight; color: #6b8f6e; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="sun-3">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 1.65 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Tip row entity -->
-            <a-entity
-              position="-0.9 1.42 0.01"
-              text="value: 💡 Tip; color: #4a6b4e; wrapCount: 22; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="tip-3">
-            </a-entity>
-
-            <!-- Emoji top left of card -->
-            <a-text id="emoji-3" value="🌿" position="-0.75 2.52 0.02" width="0.8" color="#7ec897"></a-text>
-        </a-marker>
-
-        <a-marker type="pattern" url="/markers/marker-4.patt" id="marker-4" patternRatio="0.75">
-            <!-- Main card background -->
-            <a-plane position="0 1.8 0" width="2.2" height="1.6" color="#0a1a0d" opacity="0.94" side="double"></a-plane>
-
-            <!-- Header entity: geometry + text combined — text auto-fits geometry width -->
-            <a-entity
-              position="0 2.52 0.01"
-              geometry="primitive: plane; width: 2.2; height: 0.32"
-              material="color: #162318; opacity: 0.0; transparent: true"
-              text="value: Loading...; color: #e8f0e9; wrapCount: 22; width: 2.0; anchor: center; align: center; baseline: center; font: roboto"
-              id="name-4">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.35 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Water row entity -->
-            <a-entity
-              position="-0.9 2.18 0.01"
-              text="value: 💧 Water status; color: #d4a843; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="water-4">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.0 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Sun row entity -->
-            <a-entity
-              position="-0.9 1.82 0.01"
-              text="value: ☀ Sunlight; color: #6b8f6e; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="sun-4">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 1.65 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Tip row entity -->
-            <a-entity
-              position="-0.9 1.42 0.01"
-              text="value: 💡 Tip; color: #4a6b4e; wrapCount: 22; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="tip-4">
-            </a-entity>
-
-            <!-- Emoji top left of card -->
-            <a-text id="emoji-4" value="🌿" position="-0.75 2.52 0.02" width="0.8" color="#7ec897"></a-text>
-        </a-marker>
-
-        <a-marker type="pattern" url="/markers/marker-5.patt" id="marker-5" patternRatio="0.75">
-            <!-- Main card background -->
-            <a-plane position="0 1.8 0" width="2.2" height="1.6" color="#0a1a0d" opacity="0.94" side="double"></a-plane>
-
-            <!-- Header entity: geometry + text combined — text auto-fits geometry width -->
-            <a-entity
-              position="0 2.52 0.01"
-              geometry="primitive: plane; width: 2.2; height: 0.32"
-              material="color: #162318; opacity: 0.0; transparent: true"
-              text="value: Loading...; color: #e8f0e9; wrapCount: 22; width: 2.0; anchor: center; align: center; baseline: center; font: roboto"
-              id="name-5">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.35 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Water row entity -->
-            <a-entity
-              position="-0.9 2.18 0.01"
-              text="value: 💧 Water status; color: #d4a843; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="water-5">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 2.0 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Sun row entity -->
-            <a-entity
-              position="-0.9 1.82 0.01"
-              text="value: ☀ Sunlight; color: #6b8f6e; wrapCount: 28; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="sun-5">
-            </a-entity>
-
-            <!-- Divider -->
-            <a-plane position="0 1.65 0.01" width="2.0" height="0.01" color="#2a3d2e" opacity="1"></a-plane>
-
-            <!-- Tip row entity -->
-            <a-entity
-              position="-0.9 1.42 0.01"
-              text="value: 💡 Tip; color: #4a6b4e; wrapCount: 22; width: 1.9; anchor: left; align: left; baseline: center; font: roboto"
-              id="tip-5">
-            </a-entity>
-
-            <!-- Emoji top left of card -->
-            <a-text id="emoji-5" value="🌿" position="-0.75 2.52 0.02" width="0.8" color="#7ec897"></a-text>
-        </a-marker>
-
-        <!-- Camera Entity -->
         <a-entity camera></a-entity>
     </a-scene>
 
-    <!-- AR Bottom Controls -->
-    <div class="ar-controls">
-        <span class="ar-scan-label">AR Plant Doctor</span>
-        <a href="/dashboard/" class="ar-btn-dashboard">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <span class="brand-label">AR Plant Doctor</span>
+        <a href="/dashboard/" class="dash-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
             Dashboard
         </a>
     </div>

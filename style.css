@@ -1,191 +1,172 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 /* ============================================================
-   AR PLANT DOCTOR — AR Camera Stylesheet
-   Premium AR scanning experience
+   AR PLANT DOCTOR — Scanner UI v3
    ============================================================ */
 
 :root {
-    --bg-primary: #060C06;
-    --accent: #0FC61B;
-    --text-primary: #F6F8F6;
-    --text-secondary: #A5B3AF;
-    --text-tertiary: #6B7E74;
-    --surface: rgba(11, 21, 11, 0.88);
-    --border-subtle: rgba(30, 46, 31, 0.6);
-    --status-healthy: #0FC61B;
-    --status-attention: #D4A843;
-    --status-critical: #E8735A;
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --green:   #3DDC6B;
+    --amber:   #D4A843;
+    --red:     #E8735A;
+    --surface: rgba(6, 14, 6, 0.82);
+    --border:  rgba(40, 66, 42, 0.5);
+    --text:    #EDF2EE;
+    --muted:   #7A9A7C;
+    --dim:     #3E5040;
+    --font:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-    background: var(--bg-primary);
+/*
+ * CRITICAL: html and body must be transparent.
+ * AR.js video is at z-index: -2 — any opaque bg hides the camera.
+ */
+html, body {
+    background: transparent !important;
     overflow: hidden;
-    margin: 0;
-    font-family: var(--font-sans);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    width: 100%;
+    height: 100%;
 }
 
-/* ============================================================
-   AR STATUS BANNER
-   ============================================================ */
+a-scene {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: transparent !important;
+}
 
-#ar-overlay-info {
+.a-canvas {
+    background: transparent !important;
+}
+
+/* ── Status Banner ── */
+#ar-status-bar {
     position: fixed;
     top: 16px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
-    background: var(--surface);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border-subtle);
-    color: var(--accent);
-    border-radius: 12px;
-    font-family: var(--font-sans);
-    font-weight: 500;
-    font-size: 13px;
-    padding: 10px 20px;
-    text-align: center;
-    pointer-events: none;
-    width: auto;
-    max-width: 420px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    letter-spacing: 0.01em;
-    transition: all 0.3s ease;
-}
-
-#ar-overlay-info .status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    flex-shrink: 0;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-
-/* ============================================================
-   LOADING SCREEN
-   ============================================================ */
-
-.loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: var(--bg-primary);
-    z-index: 9999;
-    font-family: var(--font-sans);
-    transition: opacity 0.5s ease;
-}
-
-.loading-screen .loading-icon {
-    width: 48px;
-    height: 48px;
-    border: 2px solid rgba(15, 198, 27, 0.15);
-    border-top: 2px solid var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-screen .loading-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 6px;
-}
-
-.loading-screen .loading-sub {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    font-weight: 400;
-}
-
-/* ============================================================
-   AR BOTTOM CONTROLS
-   ============================================================ */
-
-.ar-controls {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 9998;
+    gap: 8px;
     background: var(--surface);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid var(--border-subtle);
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 16px 8px 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    animation: blink 2.2s ease-in-out infinite;
+}
+
+#ar-status-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+}
+
+#ar-status-bar.detected {
+    border-color: rgba(61, 220, 107, 0.45);
+    box-shadow: 0 0 20px rgba(61, 220, 107, 0.12);
+}
+#ar-status-bar.detected #ar-status-text { color: var(--green); }
+#ar-status-bar.detected .status-dot {
+    animation: none;
+    box-shadow: 0 0 5px var(--green);
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+
+/* ── Loading Screen ── */
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 8px;
+    background: #060e06;
+    transition: opacity 0.5s ease;
 }
 
-.ar-controls a {
+.loading-ring {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid rgba(61, 220, 107, 0.15);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 14px;
+}
+
+.loading-logo {
+    font-size: 15px;
+    font-weight: 500;
+    color: #EDF2EE;
+    letter-spacing: -0.01em;
+}
+
+.loading-sub {
+    font-size: 11.5px;
+    color: var(--dim);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Bottom Bar ── */
+.bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 20px;
+    padding-bottom: calc(11px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+}
+
+.brand-label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--dim);
+    letter-spacing: 0.02em;
+}
+
+.dash-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    font-family: var(--font-sans);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 10px 18px;
-    border-radius: 10px;
-    transition: all 0.2s ease;
-}
-
-.ar-controls .ar-btn-dashboard {
-    background: rgba(15, 198, 27, 0.08);
-    border: 1px solid rgba(15, 198, 27, 0.25);
-    color: var(--accent);
-}
-
-.ar-controls .ar-btn-dashboard:hover {
-    background: rgba(15, 198, 27, 0.15);
-}
-
-.ar-controls .ar-scan-label {
+    gap: 6px;
     font-size: 12px;
-    color: var(--text-tertiary);
-    font-weight: 400;
+    font-weight: 500;
+    color: var(--green);
+    background: rgba(61, 220, 107, 0.07);
+    border: 1px solid rgba(61, 220, 107, 0.22);
+    border-radius: 8px;
+    padding: 7px 13px;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
 }
-
-/* ============================================================
-   MARKER DETECTED INDICATOR
-   ============================================================ */
-
-#ar-overlay-info.marker-detected {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(15, 198, 27, 0.15);
-}
-
-#ar-overlay-info.marker-detected .status-indicator {
-    animation: none;
-    background: var(--accent);
-}
+.dash-btn:hover { background: rgba(61,220,107,0.13); border-color: rgba(61,220,107,0.35); }
