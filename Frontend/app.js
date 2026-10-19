@@ -33,20 +33,28 @@ const C = {
 };
 
 // ── Watering Logic ───────────────────────────────────────────
-function waterStatus(lastWatered, intervalDays) {
-    const last = new Date(lastWatered);
-    const lu = Date.UTC(
-        last.getFullYear(),
-        last.getMonth(),
-        last.getDate()
-    );
+function parseDateUtc(dateStr) {
+    if (!dateStr) return null;
+    const parts = String(dateStr).split('-');
+    if (parts.length === 3) {
+        return Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    const d = new Date(dateStr);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
 
+function waterStatus(lastWatered, intervalDays) {
+    const lu = parseDateUtc(lastWatered);
     const now = new Date();
     const nu = Date.UTC(
         now.getFullYear(),
         now.getMonth(),
         now.getDate()
     );
+
+    if (lu === null) {
+        return { label: 'Status unavailable', urgency: 'warn' };
+    }
 
     const remaining =
         intervalDays - Math.floor((nu - lu) / 86400000);
@@ -868,15 +876,23 @@ async function syncMarkers() {
         return;
     }
 
+    // Add new markers
     for (const [id, plant] of Object.entries(plants)) {
-        if (document.getElementById(`marker-${id}`)) {
-            continue;
+        if (!document.getElementById(`marker-${id}`)) {
+            scene.appendChild(
+                createMarker(id, plant)
+            );
         }
-
-        scene.appendChild(
-            createMarker(id, plant)
-        );
     }
+
+    // Clean up deleted markers
+    const existingMarkers = scene.querySelectorAll('a-marker[id^="marker-"]');
+    existingMarkers.forEach(markerEl => {
+        const markerId = markerEl.id.replace('marker-', '');
+        if (!plants[markerId]) {
+            markerEl.parentNode?.removeChild(markerEl);
+        }
+    });
 }
 
 // ============================================================

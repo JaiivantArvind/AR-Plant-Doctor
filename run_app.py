@@ -20,7 +20,6 @@ COMMON_NODE_PATHS = [
     r"C:\Program Files (x86)\nodejs",
     os.path.expandvars(r"%LOCALAPPDATA%\Programs\nodejs"),
     os.path.expandvars(r"%USERPROFILE%\nodejs"),
-    r"C:\Users\dhanv\nodejs",
 ]
 
 for p in COMMON_NODE_PATHS:
@@ -61,9 +60,10 @@ def main():
     except Exception:
         pass
 
-    # Start Express server
+    # Start Express server via backend/server.js
+    server_script = os.path.join(project_dir, "backend", "server.js")
     try:
-        server_process = subprocess.Popen(["node", "server.js"], cwd=project_dir)
+        server_process = subprocess.Popen(["node", server_script], cwd=project_dir)
     except Exception as e:
         print(f"\n❌ Error starting server: {e}")
         input("\nPress Enter to exit...")

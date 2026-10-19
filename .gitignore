@@ -22,6 +22,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# IDE & Tooling
+.vscode/
+.idea/
+graphify-out/
+
 # Temporary / Scratch files
 scratch/
 temp/

@@ -28,18 +28,34 @@ function showToast(message, type = 'success') {
 
 // ---- Data Layer ----
 
+let currentPlants = {};
+
 async function loadPlants() {
     try {
         const response = await fetch('/api/plants');
-        return await response.json();
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        currentPlants = data;
+        try { localStorage.setItem('arpd_plants_cache', JSON.stringify(data)); } catch (_) {}
+        return data;
     } catch (err) {
-        console.error('Failed to load plants:', err);
+        console.warn('Backend unavailable, attempting offline cache:', err);
+        try {
+            const cached = localStorage.getItem('arpd_plants_cache');
+            if (cached) {
+                currentPlants = JSON.parse(cached);
+                showToast('Using offline plant cache', 'warning');
+                return currentPlants;
+            }
+        } catch (_) {}
         showToast('Failed to load plant data', 'error');
         return {};
     }
 }
 
 async function savePlants(plants) {
+    currentPlants = plants;
+    try { localStorage.setItem('arpd_plants_cache', JSON.stringify(plants)); } catch (_) {}
     try {
         const response = await fetch('/api/plants', {
             method: 'POST',
@@ -50,21 +66,30 @@ async function savePlants(plants) {
         showToast('Changes saved', 'success');
         return data;
     } catch (err) {
-        console.error('Failed to save plants:', err);
-        showToast('Save failed. Please try again.', 'error');
+        console.error('Failed to save plants to backend:', err);
+        showToast('Saved to local offline cache', 'success');
     }
 }
 
 // ---- Urgency Calculation ----
 
+function parseDateUtc(dateStr) {
+    if (!dateStr) return null;
+    const parts = String(dateStr).split('-');
+    if (parts.length === 3) {
+        return Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    const d = new Date(dateStr);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
 function getUrgency(plant) {
-    const last = new Date(plant.lastWatered);
-    const lastUtc = Date.UTC(last.getFullYear(), last.getMonth(), last.getDate());
+    const lastUtc = parseDateUtc(plant.lastWatered);
     const now = new Date();
     const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const daysPassed = Math.floor((nowUtc - lastUtc) / (1000 * 60 * 60 * 24));
-    const daysRemaining = plant.wateringIntervalDays - daysPassed;
+    const daysPassed = lastUtc !== null ? Math.floor((nowUtc - lastUtc) / (1000 * 60 * 60 * 24)) : 999;
+    const daysRemaining = (plant.wateringIntervalDays || 7) - daysPassed;
 
     let label, status, statusClass;
     if (daysRemaining < 0) {
@@ -832,6 +857,9 @@ function renderPlants(plants) {
             if (!plant) return;
 
             if (confirm(`Are you sure you want to delete ${plant.name}?`)) {
+                try {
+                    await fetch(`/api/plants/${deleteId}`, { method: 'DELETE' });
+                } catch (_) {}
                 delete plants[deleteId];
                 await savePlants(plants);
                 renderPlants(plants);
@@ -1122,12 +1150,12 @@ function switchSection(targetSection) {
 // SERVICE WORKER & CARE CHECKS
 // ============================================================
 
-function scheduleCheck(plants) {
+function scheduleCheck() {
     const sendCheck = () => {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({
                 type: 'CHECK_PLANTS',
-                plants: plants
+                plants: currentPlants
             });
         }
     };
@@ -1165,7 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPlants(plants);
             renderAnalytics(plants);
             renderSettings(plants);
-            scheduleCheck(plants);
+            scheduleCheck();
         }
     });
 });

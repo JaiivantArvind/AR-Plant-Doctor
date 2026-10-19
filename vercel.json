@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "backend/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/dashboard/(.*)",
+      "destination": "/Frontend/dashboard/$1"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/Frontend/dashboard/index.html"
+    },
+    {
+      "source": "/markers/(.*)",
+      "destination": "/Frontend/markers/$1"
+    },
+    {
+      "source": "/assets/(.*)",
+      "destination": "/Frontend/assets/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/Frontend/$1"
+    }
+  ]
+}
