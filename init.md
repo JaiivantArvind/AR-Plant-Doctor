@@ -11,8 +11,8 @@
 - **Purpose:** In-situ Augmented Reality (WebAR) houseplant care monitor, 3D botanical digital twin overlay, and collection management dashboard.
 - **Current State:** Restructured two-tier architecture (`Frontend/` presentation tier, `backend/` server & pattern synthesis engine). Zero syntax errors, 100% test pass rate across all suites.
 - **Application Entry Points:**
-  - **Care Dashboard (Default Homepage):** `http://localhost:3000/` or `/dashboard` ([`Frontend/dashboard/index.html`](Frontend/dashboard/index.html) + [`Frontend/dashboard/dashboard.js`](Frontend/dashboard/dashboard.js))
-  - **WebAR Scanner (Client):** `http://localhost:3000/scanner` or `/ar` ([`Frontend/index.html`](Frontend/index.html) + [`Frontend/app.js`](Frontend/app.js))
+  - **Care Dashboard (Default Homepage):** `http://localhost:3000/` or `/dashboard` (Live: `https://ar-plant-doctor.vercel.app`) ([`Frontend/dashboard/index.html`](Frontend/dashboard/index.html) + [`Frontend/dashboard/dashboard.js`](Frontend/dashboard/dashboard.js))
+  - **WebAR Scanner (Client):** `http://localhost:3000/scanner` or `/ar` (Live: `https://ar-plant-doctor.vercel.app/scanner`) ([`Frontend/index.html`](Frontend/index.html) + [`Frontend/app.js`](Frontend/app.js))
   - **Backend Server (Server):** `node backend/server.js` ([`backend/server.js`](backend/server.js))
   - **Windows One-Click Launcher:** [`Start.bat`](Start.bat) (or legacy forwarder [`run_app.bat`](run_app.bat))
 
@@ -38,15 +38,17 @@
 AR-Plant-Doctor/
 ├── Frontend/                           # [CLIENT TIER] Publicly served static assets
 │   ├── assets/icons/                   # High-contrast printable marker PNGs & leaf.png
-│   ├── dashboard/                      # Care Dashboard SPA
+│   ├── dashboard/                      # Care Dashboard SPA (Served at / and /dashboard)
 │   │   ├── dashboard.css               # Botanical design system & responsive layout styles
 │   │   ├── dashboard.js                # State management, views, Chart.js, marker print
 │   │   ├── index.html                  # Dashboard HTML shell
 │   │   └── sw.js                       # Background watering reminder notifications
 │   ├── markers/                        # ARToolKit pattern descriptors (.patt)
 │   ├── app.js                          # AR logic, billboard/scale components, 3D plant generator
-│   ├── index.html                      # AR scanner camera viewport & A-Frame scene
+│   ├── index.html                      # AR scanner camera viewport (Served at /scanner & /ar)
 │   └── style.css                       # AR camera transparent viewport & status pill styles
+├── api/                                # [SERVERLESS BRIDGE] Cloud deployment entry point
+│   └── index.js                        # Vercel serverless function exporting Express app
 ├── backend/                            # [SERVER TIER] Isolated from public web root
 │   ├── data/
 │   │   └── plants.json                 # Flat-file JSON database of plant care records
@@ -75,7 +77,8 @@ AR-Plant-Doctor/
 ├── README.md                           # Comprehensive end-user documentation
 ├── run_app.bat                         # Legacy backward-compatible launcher forwarder
 ├── run_app.py                          # Cross-platform helper launcher (tunnel + browser)
-└── Start.bat                           # Standardized Windows one-click launcher
+├── Start.bat                           # Standardized Windows one-click launcher
+└── vercel.json                         # Vercel deployment & routing configuration
 ```
 
 ---
@@ -129,9 +132,9 @@ To stand up the project from a fresh clone:
    - **Windows:** Double-click [`Start.bat`](Start.bat) (handles Node detection, port conflicts, server start, readiness polling, and browser launch).
    - **Cross-Platform:** Run `npm start` (or `python run_app.py`).
 5. **Access Application:**
-   - Scanner: `http://localhost:3000`
-   - Dashboard: `http://localhost:3000/dashboard`
-6. **Mobile Testing:** In a separate terminal, run `npx localtunnel --port 3000` or `npx ngrok http 3000` and open the generated HTTPS URL on your smartphone.
+   - **Care Dashboard (Default Homepage):** `http://localhost:3000` (Live: `https://ar-plant-doctor.vercel.app`)
+   - **WebAR Scanner:** `http://localhost:3000/scanner` (Live: `https://ar-plant-doctor.vercel.app/scanner`)
+6. **Mobile Testing:** Open `https://ar-plant-doctor.vercel.app/scanner` directly on iOS Safari or Android Chrome (HTTPS provided automatically for camera access). For local testing across a LAN/tunnel, run `npx localtunnel --port 3000` or `npx ngrok http 3000`.
 
 ---
 
@@ -261,7 +264,8 @@ npm test
 ### Verified Test Suites:
 - [`backend/tests/api.test.js`](backend/tests/api.test.js):
   - Validates `GET /api/plants` returns valid JSON dictionary.
-  - Validates `GET /` serves `Frontend/index.html`.
+  - Validates `GET /` serves `Frontend/dashboard/index.html` (Care Dashboard).
+  - Validates `GET /scanner` serves `Frontend/index.html` (AR Scanner).
   - Validates `GET /dashboard/` serves `Frontend/dashboard/index.html`.
 - [`backend/tests/markerService.test.js`](backend/tests/markerService.test.js):
   - Validates 512×512 PNG buffer synthesis.
@@ -295,7 +299,7 @@ When working on this repository, all AI agents must follow these operational rul
 2. **Inspect Concrete Files Before Modifying:** Consult the Core Module Map (Section 8) to locate the relevant controller, service, or component before making edits.
 3. **Preserve User Data:** Never overwrite or reset `backend/data/plants.json`. Always preserve existing plant records and watering histories.
 4. **Maintain Security Boundaries:** Never expose `backend/`, `data/`, or root files through Express static routes.
-5. **Run Tests After Any Modification:** Execute `npm test` after modifying backend, storage, or marker code. All 6 tests must pass before completing tasks.
+5. **Run Tests After Any Modification:** Execute `npm test` after modifying backend, storage, or marker code. All 7 tests must pass before completing tasks.
 6. **Update Documentation:** If you add endpoints, modify configuration, or change directory structures, you **must** update both `README.md` and `init.md`.
 
 ---

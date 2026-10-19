@@ -4,7 +4,7 @@
 [![Express](https://img.shields.io/badge/Express-5.x-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
 [![A-Frame](https://img.shields.io/badge/A--Frame-1.4.0-EF2D5E?style=flat&logo=aframe&logoColor=white)](https://aframe.io/)
 [![AR.js](https://img.shields.io/badge/AR.js-3.x-orange?style=flat)](https://ar-js-org.github.io/AR.js-Docs/)
-[![Tests](https://img.shields.io/badge/Tests-Passing%20(6%2F6)-brightgreen?style=flat)](package.json)
+[![Tests](https://img.shields.io/badge/Tests-Passing%20(7%2F7)-brightgreen?style=flat)](package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 An Augmented Reality (WebAR) houseplant care, monitoring, and collection management application. Point your smartphone or webcam at a custom plant marker to view real-time watering schedules, urgency status, sunlight requirements, and care tips rendered in 3D directly above the pot.
@@ -132,8 +132,10 @@ AR-Plant-Doctor/
 │   │   ├── marker-1.patt .. marker-6.patt # Pre-trained ARToolKit pattern descriptors
 │   │   └── .gitkeep
 │   ├── app.js                          # WebAR controller, procedural 3D plant & HUD card
-│   ├── index.html                      # WebAR camera scanner entry point
+│   ├── index.html                      # WebAR camera scanner entry point (Served at /scanner & /ar)
 │   └── style.css                       # AR camera transparent viewport & HUD styles
+├── api/                                # Serverless Function Bridge for Cloud Hosting
+│   └── index.js                        # Vercel serverless function exporting Express app
 ├── backend/                            # Server-Side Application & Data Engine
 │   ├── data/
 │   │   └── plants.json                 # JSON database with preserved user updates
@@ -157,7 +159,8 @@ AR-Plant-Doctor/
 ├── README.md                           # Main repository documentation
 ├── run_app.bat                         # Backward-compatible launcher forwarder
 ├── run_app.py                          # Cross-platform helper launcher (tunnel + browser)
-└── Start.bat                           # Standardized Windows one-click launcher
+├── Start.bat                           # Standardized Windows one-click launcher
+└── vercel.json                         # Vercel deployment & routing configuration
 ```
 
 ---
@@ -242,7 +245,7 @@ The primary Windows launcher is **[`Start.bat`](Start.bat)**. It requires no adm
 5. Verifies database integrity (`backend/data/plants.json`).
 6. Starts the backend server in a dedicated window.
 7. Actively polls `http://localhost:3000/api/plants` until the server responds with HTTP 200 OK.
-8. Opens both the **Care Dashboard** and **AR Scanner** in your default web browser.
+8. Opens the **Care Dashboard** (default homepage) in your default web browser.
 9. Automatically detects and spawns an `ngrok` tunnel if installed.
 10. Keeps the window alive and cleanly terminates the server upon keypress.
 
@@ -275,8 +278,15 @@ Executes the native Node.js test runner across all suites in `backend/tests/`.
 ## 12. Application URLs & API Endpoints
 
 ### Browser Interfaces
-- **Care Dashboard (Default Homepage):** [http://localhost:3000](http://localhost:3000) (also available at [/dashboard](http://localhost:3000/dashboard))
-- **WebAR Camera Scanner:** [http://localhost:3000/scanner](http://localhost:3000/scanner) (also available at [/ar](http://localhost:3000/ar))
+
+#### Production (Vercel Live Deployment)
+- **Care Dashboard (Default Homepage):** [https://ar-plant-doctor.vercel.app](https://ar-plant-doctor.vercel.app)
+- **WebAR Camera Scanner:** [https://ar-plant-doctor.vercel.app/scanner](https://ar-plant-doctor.vercel.app/scanner) (also at [/ar](https://ar-plant-doctor.vercel.app/ar))
+- **REST API:** [https://ar-plant-doctor.vercel.app/api/plants](https://ar-plant-doctor.vercel.app/api/plants)
+
+#### Local Development
+- **Care Dashboard (Default Homepage):** [http://localhost:3000](http://localhost:3000) (also at [/dashboard](http://localhost:3000/dashboard))
+- **WebAR Camera Scanner:** [http://localhost:3000/scanner](http://localhost:3000/scanner) (also at [/ar](http://localhost:3000/ar))
 
 ### REST API Endpoints
 
@@ -292,31 +302,35 @@ Executes the native Node.js test runner across all suites in `backend/tests/`.
 ## 13. Primary Application Workflows
 
 ### Workflow 1: Inspecting a Plant in Augmented Reality
-1. Open [http://localhost:3000](http://localhost:3000) on your desktop browser (or smartphone via HTTPS tunnel).
+1. Open [http://localhost:3000/scanner](http://localhost:3000/scanner) locally, or open [https://ar-plant-doctor.vercel.app/scanner](https://ar-plant-doctor.vercel.app/scanner) directly on your desktop or mobile browser.
 2. Allow camera access on the browser prompt.
 3. Aim the camera at a printed plant marker.
 4. The 3D botanical model (terracotta pot, soil, stem, and animated swaying leaves) will project on top of the marker.
 5. If the plant is due or overdue for watering, an animated water droplet bobs above the plant.
 6. The HUD card displays the plant species, care tip, sunlight requirement, and exact watering countdown.
+7. Click the **Dashboard** button on the bottom bar to return to the care management dashboard.
 
 ### Workflow 2: Logging Care & Adding New Plants
-1. Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
+1. Open [http://localhost:3000](http://localhost:3000) (or live at [https://ar-plant-doctor.vercel.app](https://ar-plant-doctor.vercel.app)).
 2. On the **Home** tab, click **"Water Now"** on any plant to immediately record today's date into its historical log.
 3. Switch to **My Plants** tab.
 4. Fill out the "Add New Plant" form (Name, Scientific Name, Emoji, Interval, Sunlight, Tips) and submit.
 5. The backend assigns the next numeric ID, saves to `plants.json`, and synthesizes its custom pattern descriptor and PNG marker on the fly.
 6. Click **View** on the newly created plant card and click **Print Marker** to open the print studio.
 
-### Workflow 3: Mobile Phone Scanning via Secure Tunnel
-1. Ensure the server is running locally (`Start.bat` or `npm start`).
-2. Run an HTTPS tunnel:
+### Workflow 3: Mobile Phone Scanning via Secure HTTPS
+1. Open the live production HTTPS URL directly on your smartphone (iOS Safari / Android Chrome):
+   ```text
+   https://ar-plant-doctor.vercel.app/scanner
+   ```
+   *(No tunneling tools required; Vercel automatically provides a secure HTTPS context for camera access!)*
+2. Or for local development with physical phones, launch a tunnel:
    ```bash
    npx localtunnel --port 3000
    # or
    npx ngrok http 3000
    ```
-3. Open the generated `https://...` link on your smartphone's mobile browser (Safari / Chrome).
-4. Point the phone camera at any printed marker.
+3. Allow camera access and point the phone camera at any printed marker.
 
 ---
 
@@ -361,10 +375,11 @@ The test suite exercises all backend layers without third-party test runners:
 npm test
 ```
 
-### Verified Test Matrix:
+### Verified Test Matrix (7/7 Passing):
 - `API Integration`:
   - `GET /api/plants`: Validates JSON schema response and plant records.
-  - `GET /`: Validates serving of AR Scanner `Frontend/index.html`.
+  - `GET /`: Validates serving of Care Dashboard `Frontend/dashboard/index.html`.
+  - `GET /scanner`: Validates serving of AR Scanner `Frontend/index.html`.
   - `GET /dashboard`: Validates serving of Care Dashboard `Frontend/dashboard/index.html`.
 - `MarkerService`:
   - Validates 512×512 PNG buffer synthesis.
