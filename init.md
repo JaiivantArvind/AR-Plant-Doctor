@@ -11,8 +11,8 @@
 - **Purpose:** In-situ Augmented Reality (WebAR) houseplant care monitor, 3D botanical digital twin overlay, and collection management dashboard.
 - **Current State:** Restructured two-tier architecture (`Frontend/` presentation tier, `backend/` server & pattern synthesis engine). Zero syntax errors, 100% test pass rate across all suites.
 - **Application Entry Points:**
-  - **WebAR Scanner (Client):** `http://localhost:3000/` ([`Frontend/index.html`](Frontend/index.html) + [`Frontend/app.js`](Frontend/app.js))
-  - **Care Dashboard (Client):** `http://localhost:3000/dashboard` ([`Frontend/dashboard/index.html`](Frontend/dashboard/index.html) + [`Frontend/dashboard/dashboard.js`](Frontend/dashboard/dashboard.js))
+  - **Care Dashboard (Default Homepage):** `http://localhost:3000/` or `/dashboard` ([`Frontend/dashboard/index.html`](Frontend/dashboard/index.html) + [`Frontend/dashboard/dashboard.js`](Frontend/dashboard/dashboard.js))
+  - **WebAR Scanner (Client):** `http://localhost:3000/scanner` or `/ar` ([`Frontend/index.html`](Frontend/index.html) + [`Frontend/app.js`](Frontend/app.js))
   - **Backend Server (Server):** `node backend/server.js` ([`backend/server.js`](backend/server.js))
   - **Windows One-Click Launcher:** [`Start.bat`](Start.bat) (or legacy forwarder [`run_app.bat`](run_app.bat))
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="AR Plant Doctor — Intelligent plant care dashboard with AR scanning, watering analytics, and care tracking.">
     <title>AR Plant Doctor — Dashboard</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="/dashboard/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -55,7 +55,7 @@
 
                 <div class="sidebar-nav-label" style="margin-top: auto;">Quick Actions</div>
 
-                <a href="/" class="nav-item nav-item--scan" id="nav-scan-link">
+                <a href="/scanner" class="nav-item nav-item--scan" id="nav-scan-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     Open AR Scanner
                 </a>
@@ -69,7 +69,7 @@
         <!-- ======== MOBILE HEADER ======== -->
         <header class="mobile-header" id="mobile-header">
             <h1>AR Plant Doctor</h1>
-            <a href="/" class="btn btn-sm btn-outline-accent" style="text-decoration:none;">AR Scan</a>
+            <a href="/scanner" class="btn btn-sm btn-outline-accent" style="text-decoration:none;">AR Scan</a>
         </header>
 
         <!-- ======== MAIN CONTENT ======== -->
@@ -122,7 +122,7 @@
                 </span>
                 Plants
             </button>
-            <a href="/" class="bottom-nav-item bottom-nav-item--scan" id="bnav-scan" style="text-decoration:none;">
+            <a href="/scanner" class="bottom-nav-item bottom-nav-item--scan" id="bnav-scan" style="text-decoration:none;">
                 <span class="bottom-nav-icon">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                 </span>
@@ -143,6 +143,6 @@
         </div>
     </nav>
 
-    <script src="dashboard.js"></script>
+    <script src="/dashboard/dashboard.js"></script>
 </body>
 </html>

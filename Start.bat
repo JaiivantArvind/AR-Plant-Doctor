@@ -114,15 +114,12 @@ node -e "const h=require('http');let t=0;function c(){h.get('http://localhost:30
 
 if !errorlevel! equ 0 (
     echo [READY] Server is responding at http://localhost:3000.
-    echo [LAUNCH] Opening Care Dashboard and AR Scanner in browser...
-    start "" "http://localhost:3000/dashboard"
-    ping 127.0.0.1 -n 2 >nul
+    echo [LAUNCH] Opening Care Dashboard in browser...
     start "" "http://localhost:3000"
 ) else (
     echo [WARNING] Server startup took longer than expected.
     echo Please inspect the 'AR Plant Doctor Server' console window for error details.
-    echo Opening browser tabs anyway...
-    start "" "http://localhost:3000/dashboard"
+    echo Opening browser tab anyway...
     start "" "http://localhost:3000"
 )
 
@@ -135,8 +132,8 @@ if !errorlevel! equ 0 (
 
 echo.
 echo ============================================================
-echo   AR Camera View:  http://localhost:3000
-echo   Care Dashboard:  http://localhost:3000/dashboard
+echo   Care Dashboard:  http://localhost:3000
+echo   AR Camera View:  http://localhost:3000/scanner
 echo.
 echo   Mobile Phone Testing:
 echo      Mobile browsers require HTTPS for camera permissions.

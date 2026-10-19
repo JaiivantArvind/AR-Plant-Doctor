@@ -275,8 +275,8 @@ Executes the native Node.js test runner across all suites in `backend/tests/`.
 ## 12. Application URLs & API Endpoints
 
 ### Browser Interfaces
-- **AR Camera Scanner:** [http://localhost:3000](http://localhost:3000)
-- **Care Dashboard:** [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+- **Care Dashboard (Default Homepage):** [http://localhost:3000](http://localhost:3000) (also available at [/dashboard](http://localhost:3000/dashboard))
+- **WebAR Camera Scanner:** [http://localhost:3000/scanner](http://localhost:3000/scanner) (also available at [/ar](http://localhost:3000/ar))
 
 ### REST API Endpoints
 

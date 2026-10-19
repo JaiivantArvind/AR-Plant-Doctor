@@ -31,8 +31,15 @@ describe('API Integration', () => {
         assert.ok(data['1'], 'Plant #1 must exist');
     });
 
-    test('GET / serves Frontend/index.html (AR Scanner)', async () => {
+    test('GET / serves Frontend/dashboard/index.html (Care Dashboard)', async () => {
         const res = await fetch(`${baseUrl}/`);
+        assert.strictEqual(res.status, 200);
+        const html = await res.text();
+        assert.ok(html.includes('AR Plant Doctor — Dashboard'));
+    });
+
+    test('GET /scanner serves Frontend/index.html (AR Scanner)', async () => {
+        const res = await fetch(`${baseUrl}/scanner`);
         assert.strictEqual(res.status, 200);
         const html = await res.text();
         assert.ok(html.includes('AR Plant Doctor — Scanner'));

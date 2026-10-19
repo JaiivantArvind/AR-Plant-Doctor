@@ -11,12 +11,40 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/",
+      "destination": "/Frontend/dashboard/index.html"
+    },
+    {
+      "source": "/scanner",
+      "destination": "/Frontend/index.html"
+    },
+    {
+      "source": "/ar",
+      "destination": "/Frontend/index.html"
+    },
+    {
       "source": "/dashboard/(.*)",
       "destination": "/Frontend/dashboard/$1"
     },
     {
       "source": "/dashboard",
       "destination": "/Frontend/dashboard/index.html"
+    },
+    {
+      "source": "/dashboard.css",
+      "destination": "/Frontend/dashboard/dashboard.css"
+    },
+    {
+      "source": "/dashboard.js",
+      "destination": "/Frontend/dashboard/dashboard.js"
+    },
+    {
+      "source": "/style.css",
+      "destination": "/Frontend/style.css"
+    },
+    {
+      "source": "/app.js",
+      "destination": "/Frontend/app.js"
     },
     {
       "source": "/markers/(.*)",

@@ -306,7 +306,7 @@ function renderHome(plants) {
 
     // AR CTA
     html += `
-        <a href="/" class="ar-cta" id="ar-cta-home">
+        <a href="/scanner" class="ar-cta" id="ar-cta-home">
             <div class="ar-cta-icon">📷</div>
             <div class="ar-cta-body">
                 <h4>Scan a Plant</h4>
@@ -543,7 +543,7 @@ function renderDetail(plants, id) {
                     <button class="btn btn-md btn-outline-accent" id="detail-print-btn">
                         🖨 Print Marker
                     </button>
-                    <a href="/" class="btn btn-md btn-secondary" style="text-decoration:none;">
+                    <a href="/scanner" class="btn btn-md btn-secondary" style="text-decoration:none;">
                         📷 Open in AR
                     </a>
                 </div>
@@ -1084,7 +1084,7 @@ function renderSettings(plants) {
         <div class="settings-card">
             <h3>AR Camera</h3>
             <p>Open the AR scanner to detect plant markers in real-time.</p>
-            <a href="/" class="btn btn-md btn-secondary" style="text-decoration:none;">Open AR Scanner</a>
+            <a href="/scanner" class="btn btn-md btn-secondary" style="text-decoration:none;">Open AR Scanner</a>
         </div>`;
 
     // Wire events
